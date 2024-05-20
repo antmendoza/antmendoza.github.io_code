@@ -19,10 +19,10 @@ public interface WorkflowTaskManager {
 
 
     @UpdateValidatorMethod(updateName = "changeTaskStateTo")
-    void validateChangeTaskStateTo(ChangeTaskRequest changeTaskRequest, TaskState newState);
+    void validateChangeTaskStateTo(ChangeTaskRequest changeTaskRequest);
 
     @UpdateMethod
-    void changeTaskStateTo(ChangeTaskRequest changeTaskRequest, TaskState newState);
+    void changeTaskStateTo(ChangeTaskRequest changeTaskRequest);
 
     @QueryMethod
     List<Task> getAllTasks();

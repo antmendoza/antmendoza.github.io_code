@@ -69,15 +69,15 @@ public class WorkflowWithTasksImplTest {
         WorkflowTaskManager workflowManager =
                 workflowClient.newWorkflowStub(WorkflowTaskManager.class, WorkflowTaskManager.WORKFLOW_ID);
 
-        workflowManager.addTask(new Task(""+Math.random(), "My TODO 1"));
+        final String id_1 = "" + Math.random();
+        workflowManager.addTask(new Task(id_1, "My TODO 1"));
         workflowManager.addTask(new Task(""+Math.random(), "My TODO 2"));
         workflowManager.addTask(new Task(""+Math.random(), "My TODO 3"));
 
-        try {
-            //Thread.sleep(2000);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+
+        workflowManager.changeTaskStateTo(new ChangeTaskRequest(id_1,"user1", null, TaskState.Assigned ));
+
+        workflowManager.changeTaskStateTo(new ChangeTaskRequest(id_1,"user2", null, TaskState.Assigned ));
 
         assertEquals(3, workflowManager.getAllTasks().size());
 

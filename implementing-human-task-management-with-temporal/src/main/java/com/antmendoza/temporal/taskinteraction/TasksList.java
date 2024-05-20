@@ -9,11 +9,11 @@ public class TasksList {
 
     private final List<Task> tasks = new ArrayList<>();
 
-    private final List<Task> unprocessedTask = new ArrayList<>();
+    private final List<Task> unprocessedAddedTasks = new ArrayList<>();
 
     @JsonIgnore
     public void add(final Task task) {
-        this.unprocessedTask.add(task);
+        this.unprocessedAddedTasks.add(task);
         this.tasks.add(task);
     }
 
@@ -23,12 +23,12 @@ public class TasksList {
     }
 
     @JsonIgnore
-    public boolean canTaskTransitionToState(final ChangeTaskRequest changeTaskRequest,
-                                            final TaskState newState) {
+    public boolean canTaskTransitionToState(final ChangeTaskRequest changeTaskRequest) {
         final TaskState taskState = getTask(changeTaskRequest.taskId()).getTaskState();
 
 
         boolean canTransition = false;
+        final TaskState newState = changeTaskRequest.newState();
         switch (newState) {
             case Assigned:
                 if (taskState.equals(TaskState.New) ||
@@ -37,6 +37,7 @@ public class TasksList {
                     canTransition = true;
                 }
                 break;
+
             case Unclaimed:
                 if (taskState.equals(TaskState.New) ||
                         taskState.equals(TaskState.Assigned) ||
@@ -46,7 +47,7 @@ public class TasksList {
                 break;
             // TODO implement validation for other transitions
             default:
-                // code block
+                throw new RuntimeException(taskState + " to "+newState+" not implemented");
         }
 
         return canTransition;
@@ -59,29 +60,35 @@ public class TasksList {
     }
 
     @JsonIgnore
-    public void changeTaskStateTo(final ChangeTaskRequest changeTaskRequest, final TaskState newState) {
+    public void changeTaskStateTo(final ChangeTaskRequest changeTaskRequest) {
+
         final String taskId = changeTaskRequest.taskId();
-        final TaskState taskState = getTask(taskId).getTaskState();
-        if (canTaskTransitionToState(changeTaskRequest, newState)) {
+        final Task task = getTask(taskId);
+        final TaskState taskState = task.getTaskState();
+        if (!canTaskTransitionToState(changeTaskRequest)) {
             throw new RuntimeException("Task with id [" + taskId + "], " +
-                    "with state [" + taskState + "], can not transition to " + newState);
+                    "with state [" + taskState + "], can not transition to " + changeTaskRequest.newState());
         }
 
-        //TODO IMPLEMENT
+
+        // For the sake of simplicity Task is mutable
+        task.changeTaskState(changeTaskRequest);
+        this.unprocessedAddedTasks.add(task);
 
     }
 
     @JsonIgnore
-    public boolean hasUnprocessedTask() {
-        return !this.unprocessedTask.isEmpty();
+    public boolean hasUnprocessedTasks() {
+        return !this.unprocessedAddedTasks.isEmpty();
     }
 
     @JsonIgnore
-    public Task getNextTaskToProcess() {
-        return unprocessedTask.remove(unprocessedTask.size() - 1);
+    public Task getNextUnprocessedTasks() {
+        return unprocessedAddedTasks.remove(unprocessedAddedTasks.size() - 1);
     }
 
     public List<Task> getTasks() {
         return tasks;
     }
+
 }

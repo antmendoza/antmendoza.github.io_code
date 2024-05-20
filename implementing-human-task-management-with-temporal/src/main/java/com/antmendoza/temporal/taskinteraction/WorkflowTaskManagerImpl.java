@@ -1,13 +1,16 @@
 package com.antmendoza.temporal.taskinteraction;
 
 import io.temporal.workflow.Workflow;
+import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Objects;
 
 public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
+    private final Logger logger = Workflow.getLogger(WorkflowTaskManagerImpl.class.getName());
 
 
-    private  TasksList taskList = new TasksList();
+    private TasksList taskList = new TasksList();
 
 
     @Override
@@ -21,47 +24,46 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
             Workflow.await(
                     () ->
                             // Wait until there are pending task to process
-                            this.taskList.hasUnprocessedTask());
+                            this.taskList.hasUnprocessedTasks());
 
 
+            final Task task = this.taskList.getNextUnprocessedTasks();
+            logger.info("Processing task " + task);
+            Task previousTask = task.getPreviousState();
+            logger.info("Processing previousTask " + previousTask);
 
-            final Task task = this.taskList.getNextTaskToProcess();
 
-
-            //
-
-
-            if (Workflow.getInfo().isContinueAsNewSuggested()) {
-                Workflow.newContinueAsNewStub(WorkflowTaskManager.class)
-                        .run(this.taskList);
+            if (previousTask != null &&
+                    // Here we could add activities to notify the user...
+                    !Objects.equals(task.getAssignedTo(), previousTask.getAssignedTo())) {
+                //Notify use task.getAssignedTo()
             }
 
-
-
         }
+
+
     }
 
     @Override
     public void addTask(Task task) {
         taskList.add(task);
-        System.out.println(">>>>> " + taskList.hasUnprocessedTask());
     }
 
     @Override
-    public void validateChangeTaskStateTo(ChangeTaskRequest changeTaskRequest, TaskState newState) {
+    public void validateChangeTaskStateTo(ChangeTaskRequest changeTaskRequest) {
 
         final String taskId = changeTaskRequest.taskId();
-        if (taskList.canTaskTransitionToState(changeTaskRequest, newState)) {
+        if (!taskList.canTaskTransitionToState(changeTaskRequest)) {
             final TaskState taskState = taskList.getTask(taskId).getTaskState();
             throw new RuntimeException("Task with id [" + taskId + "], " +
-                    "with state [" + taskState + "], can not transition to " + newState);
+                    "with state [" + taskState + "], can not transition to " + changeTaskRequest.newState());
         }
     }
 
 
     @Override
-    public void changeTaskStateTo(ChangeTaskRequest changeTaskRequest, TaskState newState) {
-        taskList.changeTaskStateTo(changeTaskRequest, newState);
+    public void changeTaskStateTo(ChangeTaskRequest changeTaskRequest) {
+        taskList.changeTaskStateTo(changeTaskRequest);
     }
 
     @Override

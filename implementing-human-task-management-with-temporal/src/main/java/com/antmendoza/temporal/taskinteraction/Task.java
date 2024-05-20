@@ -1,13 +1,20 @@
 package com.antmendoza.temporal.taskinteraction;
 
+import org.apache.commons.lang3.SerializationUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class Task {
+public class Task implements Serializable {
     private String id;
     private String title;
     private String assignedTo;
     private String candidate;
     private TaskState taskState;
+
+    private Task previousState;
 
     public Task() {
     }
@@ -30,21 +37,29 @@ public class Task {
         return id;
     }
 
+    public String getCandidate() {
+        return candidate;
+    }
+
+    public String getAssignedTo() {
+        return assignedTo;
+    }
+
+    public Task getPreviousState() {
+        return previousState;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final Task task = (Task) o;
-        return Objects.equals(id, task.id)
-                && Objects.equals(title, task.title)
-                && Objects.equals(assignedTo, task.assignedTo)
-                && Objects.equals(candidate, task.candidate)
-                && taskState == task.taskState;
+        return Objects.equals(id, task.id) && Objects.equals(title, task.title) && Objects.equals(assignedTo, task.assignedTo) && Objects.equals(candidate, task.candidate) && taskState == task.taskState && Objects.equals(previousState, task.previousState);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, assignedTo, candidate, taskState);
+        return Objects.hash(id, title, assignedTo, candidate, taskState, previousState);
     }
 
     @Override
@@ -55,6 +70,16 @@ public class Task {
                 ", assignedTo='" + assignedTo + '\'' +
                 ", candidate='" + candidate + '\'' +
                 ", taskState=" + taskState +
+                ", previousState=" + previousState +
                 '}';
     }
+
+    //Mutate task state with the requested changes
+    public void changeTaskState(final ChangeTaskRequest changeTaskRequest) {
+        this.previousState = SerializationUtils.clone(this);
+        this.taskState = changeTaskRequest.newState();
+        this.assignedTo = changeTaskRequest.assignedTo();
+        this.candidate = changeTaskRequest.candidate();
+    }
+
 }
