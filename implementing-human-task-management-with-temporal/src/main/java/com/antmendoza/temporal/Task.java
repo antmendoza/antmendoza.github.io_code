@@ -1,10 +1,8 @@
-package com.antmendoza.temporal.taskinteraction;
+package com.antmendoza.temporal;
 
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Task implements Serializable {

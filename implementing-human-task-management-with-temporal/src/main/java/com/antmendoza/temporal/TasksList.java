@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.taskinteraction;
+package com.antmendoza.temporal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

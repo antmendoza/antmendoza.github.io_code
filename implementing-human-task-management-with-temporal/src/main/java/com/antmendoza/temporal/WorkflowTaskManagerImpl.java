@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.taskinteraction;
+package com.antmendoza.temporal;
 
 import io.temporal.workflow.Workflow;
 import org.slf4j.Logger;
@@ -10,13 +10,13 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
     private final Logger logger = Workflow.getLogger(WorkflowTaskManagerImpl.class.getName());
 
 
-    private TasksList taskList = new TasksList();
+    private TasksList taskListService = new TasksList();
 
 
     @Override
     public void run(TasksList taskList) {
 
-        this.taskList = taskList != null ? taskList : new TasksList();
+        this.taskListService = taskList != null ? taskList : new TasksList();
 
 
         while (true) {
@@ -24,10 +24,10 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
             Workflow.await(
                     () ->
                             // Wait until there are pending task to process
-                            this.taskList.hasUnprocessedTasks());
+                            this.taskListService.hasUnprocessedTasks());
 
 
-            final Task task = this.taskList.getNextUnprocessedTasks();
+            final Task task = this.taskListService.getNextUnprocessedTasks();
             logger.info("Processing task " + task);
             Task previousTask = task.getPreviousState();
             logger.info("Processing previousTask " + previousTask);
@@ -46,15 +46,15 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 
     @Override
     public void addTask(Task task) {
-        taskList.add(task);
+        taskListService.add(task);
     }
 
     @Override
     public void validateChangeTaskStateTo(ChangeTaskRequest changeTaskRequest) {
 
         final String taskId = changeTaskRequest.taskId();
-        if (!taskList.canTaskTransitionToState(changeTaskRequest)) {
-            final TaskState taskState = taskList.getTask(taskId).getTaskState();
+        if (!taskListService.canTaskTransitionToState(changeTaskRequest)) {
+            final TaskState taskState = taskListService.getTask(taskId).getTaskState();
             throw new RuntimeException("Task with id [" + taskId + "], " +
                     "with state [" + taskState + "], can not transition to " + changeTaskRequest.newState());
         }
@@ -63,12 +63,12 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 
     @Override
     public void changeTaskStateTo(ChangeTaskRequest changeTaskRequest) {
-        taskList.changeTaskStateTo(changeTaskRequest);
+        taskListService.changeTaskStateTo(changeTaskRequest);
     }
 
     @Override
     public List<Task> getAllTasks() {
-        return taskList.getTasks();
+        return taskListService.getTasks();
     }
 
 

@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.taskinteraction;
+package com.antmendoza.temporal;
 
 import io.temporal.api.common.v1.WorkflowExecution;
 import io.temporal.api.enums.v1.WorkflowExecutionStatus;

@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.taskinteraction;
+package com.antmendoza.temporal;
 
 import io.temporal.workflow.*;
 
@@ -11,7 +11,7 @@ public interface WorkflowTaskManager {
 
 
     @WorkflowMethod
-    void run(TasksList taskList);
+    void run(TasksList taskListService);
 
 
     @UpdateMethod

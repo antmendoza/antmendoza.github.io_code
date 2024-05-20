@@ -1,6 +1,6 @@
-package com.antmendoza.temporal.taskinteraction.worker;
+package com.antmendoza.temporal.worker;
 
-import com.antmendoza.temporal.taskinteraction.WorkflowTaskManagerImpl;
+import com.antmendoza.temporal.WorkflowTaskManagerImpl;
 import io.temporal.client.WorkflowClient;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.worker.WorkerFactory;

@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.taskinteraction;
+package com.antmendoza.temporal;
 
 public enum TaskState {
     New,
