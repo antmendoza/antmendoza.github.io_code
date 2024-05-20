@@ -1,25 +1,5 @@
-/*
- *  Copyright (c) 2020 Temporal Technologies, Inc. All Rights Reserved
- *
- *  Copyright 2012-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Modifications copyright (C) 2017 Uber Technologies, Inc.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not
- *  use this file except in compliance with the License. A copy of the License is
- *  located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- *  or in the "license" file accompanying this file. This file is distributed on
- *  an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- *  express or implied. See the License for the specific language governing
- *  permissions and limitations under the License.
- */
-
 package com.antmendoza.temporal.taskinteraction;
 
-import com.antmendoza.temporal.taskinteraction.activity.ActivityTaskImpl;
 import io.temporal.api.common.v1.WorkflowExecution;
 import io.temporal.api.enums.v1.WorkflowExecutionStatus;
 import io.temporal.api.workflowservice.v1.DescribeWorkflowExecutionRequest;
@@ -35,7 +15,6 @@ import io.temporal.workflow.Workflow;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
@@ -52,11 +31,12 @@ public class WorkflowWithTasksImplTest {
                                     .setWorkerInterceptors(myWorkerInterceptor)
                                     .validateAndBuildWithDefaults())
                     .setDoNotStart(true)
+                    //.setUseExternalService(true)
+                    //.setNamespace("default")
+                    //.setTarget("127.0.0.1:7233")
                     .build();
 
-    private static List<Task> getPendingTask(final WorkflowTaskManager workflowManager) {
-        return workflowManager.getPendingTask();
-    }
+
 
     @Test
     public void testEnd2End() {
@@ -65,55 +45,46 @@ public class WorkflowWithTasksImplTest {
         testWorkflowRule
                 .getWorker()
                 .registerWorkflowImplementationTypes(
-                        WorkflowWithTasksImpl.class, WorkflowTaskManagerImpl.class);
+                         WorkflowTaskManagerImpl.class);
 
-        testWorkflowRule
-                .getWorker()
-                .registerActivitiesImplementations(new ActivityTaskImpl(workflowClient));
+//        testWorkflowRule
+//                .getWorker()
+//                .registerActivitiesImplementations(new ActivityTaskImpl(workflowClient));
 
         testWorkflowRule.getTestEnvironment().start();
 
-        WorkflowWithTasks workflow =
+        WorkflowTaskManager workflow =
                 testWorkflowRule
                         .getWorkflowClient()
                         .newWorkflowStub(
-                                WorkflowWithTasks.class,
+                                WorkflowTaskManager.class,
                                 WorkflowOptions.newBuilder()
-                                        .setWorkflowId(WorkflowWithTasks.WORKFLOW_ID)
+                                        .setWorkflowId(WorkflowTaskManager.WORKFLOW_ID)
                                         .setTaskQueue(testWorkflowRule.getTaskQueue())
                                         .build());
 
-        WorkflowExecution execution = WorkflowClient.start(workflow::execute);
+        WorkflowExecution execution = WorkflowClient.start(workflow::run, new TasksList());
 
-        // Wait until the first two tasks from WorkflowWithTasks are created in WorkflowTaskManager
-        myWorkerInterceptor.waitUntilTwoCreateTaskInvocations();
 
         WorkflowTaskManager workflowManager =
                 workflowClient.newWorkflowStub(WorkflowTaskManager.class, WorkflowTaskManager.WORKFLOW_ID);
 
-        final List<Task> pendingTask = getPendingTask(workflowManager);
-        assertEquals(2, pendingTask.size());
+        workflowManager.addTask(new Task(""+Math.random(), "My TODO 1"));
+        workflowManager.addTask(new Task(""+Math.random(), "My TODO 2"));
+        workflowManager.addTask(new Task(""+Math.random(), "My TODO 3"));
 
-        // Complete the two pending task created in parallel from `WorkflowWithTasks`.
-        // Send update to the workflow that keeps tasks state, that will signal back
-        // the `WorkflowWithTasks` execution
-        workflowManager.completeTaskByToken(pendingTask.get(0).getToken());
-        workflowManager.completeTaskByToken(pendingTask.get(1).getToken());
+        try {
+            //Thread.sleep(2000);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-        // Wait until the last task in WorkflowWithTasks is created in WorkflowTaskManager
-        myWorkerInterceptor.waitUntilThreeInvocationsOfCreateTask();
-
-        // Complete the last task in `WorkflowWithTasks`
-        assertEquals(1, getPendingTask(workflowManager).size());
-        workflowManager.completeTaskByToken(getPendingTask(workflowManager).get(0).getToken());
-
-        // Wait workflow to complete
-        workflowClient.newUntypedWorkflowStub(execution.getWorkflowId()).getResult(Void.class);
+        assertEquals(3, workflowManager.getAllTasks().size());
 
         final DescribeWorkflowExecutionResponse describeWorkflowExecutionResponse =
                 getDescribeWorkflowExecutionResponse(workflowClient, execution);
         assertEquals(
-                WorkflowExecutionStatus.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+                WorkflowExecutionStatus.WORKFLOW_EXECUTION_STATUS_RUNNING,
                 describeWorkflowExecutionResponse.getWorkflowExecutionInfo().getStatus());
     }
 
