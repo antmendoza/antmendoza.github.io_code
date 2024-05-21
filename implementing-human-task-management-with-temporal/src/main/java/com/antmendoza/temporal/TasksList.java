@@ -27,14 +27,14 @@ public class TasksList {
         final TaskState taskState = getTask(changeTaskRequest.taskId()).getTaskState();
 
 
-        boolean canTransition = false;
+        boolean canTransitionate = false;
         final TaskState newState = changeTaskRequest.newState();
         switch (newState) {
             case Assigned:
                 if (taskState.equals(TaskState.New) ||
                         taskState.equals(TaskState.Unclaimed) ||
                         taskState.equals(TaskState.Assigned)) {
-                    canTransition = true;
+                    canTransitionate = true;
                 }
                 break;
 
@@ -42,7 +42,7 @@ public class TasksList {
                 if (taskState.equals(TaskState.New) ||
                         taskState.equals(TaskState.Assigned) ||
                         taskState.equals(TaskState.Unclaimed)) {
-                    canTransition = true;
+                    canTransitionate = true;
                 }
                 break;
             // TODO implement validation for other transitions
@@ -50,7 +50,7 @@ public class TasksList {
                 throw new RuntimeException(taskState + " to "+newState+" not implemented");
         }
 
-        return canTransition;
+        return canTransitionate;
 
     }
 

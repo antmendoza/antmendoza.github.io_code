@@ -78,6 +78,7 @@ public class WorkflowWithTasksImplTest {
         workflowManager.changeTaskStateTo(new ChangeTaskRequest(id_1,"user1", null, TaskState.Assigned ));
 
         workflowManager.changeTaskStateTo(new ChangeTaskRequest(id_1,"user2", null, TaskState.Assigned ));
+        workflowManager.changeTaskStateTo(new ChangeTaskRequest(id_1,"user3", null, TaskState.Assigned ));
 
         assertEquals(3, workflowManager.getAllTasks().size());
 
