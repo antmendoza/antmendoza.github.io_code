@@ -26,22 +26,17 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
                             // Wait until there are pending task to process
                             this.taskListService.hasUnprocessedTasks());
 
-
             final Task task = this.taskListService.getNextUnprocessedTasks();
             logger.info("Processing task " + task);
             Task previousTask = task.getPreviousState();
             logger.info("Processing previousTask " + previousTask);
 
-
+            // Here we could add activities to notify the user...
             if (previousTask != null &&
-                    // Here we could add activities to notify the user...
                     !Objects.equals(task.getAssignedTo(), previousTask.getAssignedTo())) {
                 //Notify use task.getAssignedTo()
             }
-
         }
-
-
     }
 
     @Override

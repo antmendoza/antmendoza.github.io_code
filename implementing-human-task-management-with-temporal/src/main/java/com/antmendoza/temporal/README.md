@@ -1,7 +1,6 @@
 # Demo tasks interaction
 
-This example demonstrates a generic implementation for "User Tasks" interaction with Temporal, 
-which can be easily implemented as follows: 
+This example demonstrates a generic implementation for "User Tasks" interaction with Temporal: 
 - The main workflow [WorkflowWithTasks](WorkflowWithTasks.java) have an activity (or local activity) that send the request to an external service. 
 The _external service_, for this example, is another workflow ([WorkflowTaskManager](WorkflowTaskManager.java)), 
 that takes care of the task life-cicle.

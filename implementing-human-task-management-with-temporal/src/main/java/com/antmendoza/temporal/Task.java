@@ -9,7 +9,6 @@ public class Task implements Serializable {
     private String id;
     private String title;
     private String assignedTo;
-    private String candidate;
     private TaskState taskState;
 
     private Task previousState;
@@ -35,9 +34,6 @@ public class Task implements Serializable {
         return id;
     }
 
-    public String getCandidate() {
-        return candidate;
-    }
 
     public String getAssignedTo() {
         return assignedTo;
@@ -52,12 +48,12 @@ public class Task implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final Task task = (Task) o;
-        return Objects.equals(id, task.id) && Objects.equals(title, task.title) && Objects.equals(assignedTo, task.assignedTo) && Objects.equals(candidate, task.candidate) && taskState == task.taskState && Objects.equals(previousState, task.previousState);
+        return Objects.equals(id, task.id) && Objects.equals(title, task.title) && Objects.equals(assignedTo, task.assignedTo)  && taskState == task.taskState && Objects.equals(previousState, task.previousState);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, assignedTo, candidate, taskState, previousState);
+        return Objects.hash(id, title, assignedTo, taskState, previousState);
     }
 
     @Override
@@ -66,7 +62,6 @@ public class Task implements Serializable {
                 "id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", assignedTo='" + assignedTo + '\'' +
-                ", candidate='" + candidate + '\'' +
                 ", taskState=" + taskState +
                 ", previousState=" + previousState +
                 '}';
@@ -77,7 +72,6 @@ public class Task implements Serializable {
         this.previousState = SerializationUtils.clone(this);
         this.taskState = changeTaskRequest.newState();
         this.assignedTo = changeTaskRequest.assignedTo();
-        this.candidate = changeTaskRequest.candidate();
     }
 
 }
