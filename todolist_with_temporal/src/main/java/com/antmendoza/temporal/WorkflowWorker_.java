@@ -21,7 +21,7 @@ public class WorkflowWorker_ {
 
     io.temporal.worker.Worker worker = factory.newWorker(TASK_QUEUE);
     worker.registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
-//    worker.registerActivitiesImplementations(new ActivityTaskImpl(client));
+    //    worker.registerActivitiesImplementations(new ActivityTaskImpl(client));
 
     factory.start();
   }

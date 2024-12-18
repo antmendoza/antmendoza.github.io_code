@@ -10,15 +10,13 @@ public class WorkflowClient_ {
   public static void main(String[] args) {
 
     final WorkflowServiceStubs service = WorkflowServiceStubs.newLocalServiceStubs();
-    final io.temporal.client.WorkflowClient client = io.temporal.client.WorkflowClient.newInstance(service);
+    final io.temporal.client.WorkflowClient client =
+        io.temporal.client.WorkflowClient.newInstance(service);
 
-    WorkflowTodoList workflow =  client.newWorkflowStub(WorkflowTodoList.class, WorkflowOptions.newBuilder()
-            .setWorkflowId("")
-            .build());
-
+    WorkflowTodoList workflow =
+        client.newWorkflowStub(
+            WorkflowTodoList.class, WorkflowOptions.newBuilder().setWorkflowId("").build());
 
     io.temporal.client.WorkflowClient.start(workflow::run, new TodoList());
-
-
   }
 }
