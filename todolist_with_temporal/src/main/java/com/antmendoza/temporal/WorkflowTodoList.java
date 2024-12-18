@@ -11,7 +11,7 @@ public interface WorkflowTodoList {
   @WorkflowMethod
   void run(TodoList todoList);
 
-  @SignalMethod
+  @UpdateMethod
   void addTodo(Todo todo);
 
   @QueryMethod

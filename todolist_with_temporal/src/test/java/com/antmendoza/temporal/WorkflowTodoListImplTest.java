@@ -5,6 +5,8 @@ import com.antmendoza.temporal.domain.TodoList;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.testing.TestWorkflowRule;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.Assert;
@@ -24,11 +26,12 @@ public class WorkflowTodoListImplTest {
 
   @After
   public void tearDown() {
-    testWorkflowRule.getTestEnvironment().shutdown();
+
+    // testWorkflowRule.getTestEnvironment().shutdown();
   }
 
   @Test
-  public void testAddTodo() throws InterruptedException {
+  public void testAddTodo() {
     final String WORKFLOW_ID = "MY_WORKFLOW_ID";
 
     testWorkflowRule.getWorker().registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
@@ -56,7 +59,7 @@ public class WorkflowTodoListImplTest {
   }
 
   @Test
-  public void testUpdateTodo() throws InterruptedException {
+  public void testUpdateTodo() {
     final String WORKFLOW_ID = "MY_WORKFLOW_ID";
 
     testWorkflowRule.getWorker().registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
@@ -82,5 +85,44 @@ public class WorkflowTodoListImplTest {
     Assert.assertEquals(1, workflow.getTodos().size());
 
     Assert.assertEquals("todo_2", workflow.getTodos().get(0).getTitle());
+  }
+
+  @Test
+  public void testWithDueDate() {
+    final String WORKFLOW_ID = "MY_WORKFLOW_ID";
+
+    testWorkflowRule.getWorker().registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
+
+    testWorkflowRule.getTestEnvironment().start();
+
+    final WorkflowClient workflowClient = testWorkflowRule.getWorkflowClient();
+    final WorkflowTodoList workflow =
+        workflowClient.newWorkflowStub(
+            WorkflowTodoList.class,
+            WorkflowOptions.newBuilder()
+                .setTaskQueue(testWorkflowRule.getTaskQueue())
+                .setWorkflowId(WORKFLOW_ID)
+                .build());
+
+    WorkflowClient.execute(workflow::run, new TodoList());
+
+    final String taskId = UUID.randomUUID().toString();
+    workflow.addTodo(new Todo(taskId, "todo_1", Instant.now().plusSeconds(20).toString()));
+
+    Assert.assertEquals(1, workflow.getTodos().size());
+
+    Assert.assertEquals("todo_1", workflow.getTodos().get(0).getTitle());
+    Assert.assertEquals("Active", workflow.getTodos().get(0).getStatus());
+
+    testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(20));
+
+    Assert.assertEquals("Expired", workflow.getTodos().get(0).getStatus());
+
+    workflow.addTodo(new Todo(taskId, "todo_1", Instant.now().plusSeconds(5).toString()));
+
+    Assert.assertEquals("Active", workflow.getTodos().get(0).getStatus());
+    testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(5));
+
+    Assert.assertEquals("Expired", workflow.getTodos().get(0).getStatus());
   }
 }
