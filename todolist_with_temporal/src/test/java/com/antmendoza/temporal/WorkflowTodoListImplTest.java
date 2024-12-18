@@ -1,5 +1,7 @@
 package com.antmendoza.temporal;
 
+import com.antmendoza.temporal.domain.Todo;
+import com.antmendoza.temporal.domain.TodoList;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.testing.TestWorkflowRule;
@@ -26,15 +28,15 @@ public class WorkflowTodoListImplTest {
   }
 
   @Test
-  public void testAddTask() throws InterruptedException {
-    final String WORKFLOW_ID = "WORKFLOW_ID";
+  public void testAddTodo() throws InterruptedException {
+    final String WORKFLOW_ID = "MY_WORKFLOW_ID";
 
     testWorkflowRule.getWorker().registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
 
     testWorkflowRule.getTestEnvironment().start();
 
     final WorkflowClient workflowClient = testWorkflowRule.getWorkflowClient();
-    WorkflowTodoList workflow =
+    final WorkflowTodoList workflow =
         workflowClient.newWorkflowStub(
             WorkflowTodoList.class,
             WorkflowOptions.newBuilder()
@@ -44,25 +46,25 @@ public class WorkflowTodoListImplTest {
 
     WorkflowClient.execute(workflow::run, new TodoList());
 
-    workflow.addTask(new Task(UUID.randomUUID().toString(), "todo_1"));
+    workflow.addTodo(new Todo(UUID.randomUUID().toString(), "todo_1"));
 
-    Assert.assertEquals(1, workflow.getTasks().size());
+    Assert.assertEquals(1, workflow.getTodos().size());
 
-    workflow.addTask(new Task(UUID.randomUUID().toString(), "todo_2"));
+    workflow.addTodo(new Todo(UUID.randomUUID().toString(), "todo_2"));
 
-    Assert.assertEquals(2, workflow.getTasks().size());
+    Assert.assertEquals(2, workflow.getTodos().size());
   }
 
   @Test
-  public void testUpdateTask() throws InterruptedException {
-    final String WORKFLOW_ID = "WORKFLOW_ID";
+  public void testUpdateTodo() throws InterruptedException {
+    final String WORKFLOW_ID = "MY_WORKFLOW_ID";
 
     testWorkflowRule.getWorker().registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
 
     testWorkflowRule.getTestEnvironment().start();
 
     final WorkflowClient workflowClient = testWorkflowRule.getWorkflowClient();
-    WorkflowTodoList workflow =
+    final WorkflowTodoList workflow =
         workflowClient.newWorkflowStub(
             WorkflowTodoList.class,
             WorkflowOptions.newBuilder()
@@ -73,12 +75,12 @@ public class WorkflowTodoListImplTest {
     WorkflowClient.execute(workflow::run, new TodoList());
 
     final String taskId = UUID.randomUUID().toString();
-    workflow.addTask(new Task(taskId, "todo_1"));
+    workflow.addTodo(new Todo(taskId, "todo_1"));
 
-    workflow.updateTask(new Task(taskId, "todo_2"));
+    workflow.updateTodo(new Todo(taskId, "todo_2"));
 
-    Assert.assertEquals(1, workflow.getTasks().size());
+    Assert.assertEquals(1, workflow.getTodos().size());
 
-    Assert.assertEquals("todo_2", workflow.getTasks().get(0).getTitle());
+    Assert.assertEquals("todo_2", workflow.getTodos().get(0).getTitle());
   }
 }

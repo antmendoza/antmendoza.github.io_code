@@ -1,5 +1,7 @@
 package com.antmendoza.temporal;
 
+import com.antmendoza.temporal.domain.Todo;
+import com.antmendoza.temporal.domain.TodoList;
 import io.temporal.workflow.*;
 import java.util.List;
 
@@ -10,11 +12,11 @@ public interface WorkflowTodoList {
   void run(TodoList todoList);
 
   @SignalMethod
-  void addTask(Task task);
+  void addTodo(Todo todo);
 
   @QueryMethod
-  List<Task> getTasks();
+  List<Todo> getTodos();
 
   @UpdateMethod
-  void updateTask(Task task);
+  void updateTodo(Todo todo);
 }

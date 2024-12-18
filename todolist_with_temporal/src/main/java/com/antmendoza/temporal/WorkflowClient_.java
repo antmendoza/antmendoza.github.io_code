@@ -1,5 +1,6 @@
 package com.antmendoza.temporal;
 
+import com.antmendoza.temporal.domain.TodoList;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 
