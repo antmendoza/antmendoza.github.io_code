@@ -1,14 +1,14 @@
 package com.antmendoza.temporal.domain;
 
-public class TodoRequest {
+public class UpdateTodoRequest {
 
   private String id;
   private String description;
   private String dueDate;
 
-  public TodoRequest() {}
+  public UpdateTodoRequest() {}
 
-  public TodoRequest(String id, String description, String dueDate) {
+  public UpdateTodoRequest(String id, String description, String dueDate) {
     this.id = id;
     this.description = description;
     this.dueDate = dueDate;

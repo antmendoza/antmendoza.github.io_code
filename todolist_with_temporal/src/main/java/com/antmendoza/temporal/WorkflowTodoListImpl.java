@@ -1,6 +1,7 @@
 package com.antmendoza.temporal;
 
 import com.antmendoza.temporal.domain.*;
+import io.temporal.failure.CanceledFailure;
 import io.temporal.workflow.CancellationScope;
 import io.temporal.workflow.Workflow;
 import io.temporal.workflow.WorkflowInit;
@@ -15,21 +16,29 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
 
   private final Map<String, CancellationScope> timers = new HashMap<>();
 
-  private final List<Todo> unprocessedTodos = new ArrayList<>();
+  private final List<Todo> unprocessedRequests = new ArrayList<>();
   private final TodoService todoService;
 
   @WorkflowInit
   public WorkflowTodoListImpl(TodoRepository todoRepository) {
-    this.todoService = new TodoService(todoRepository);
+    this.todoService =
+        new TodoService(
+            todoRepository,
+            new DateProvider() {
+              @Override
+              public long getCurrentMs() {
+                return Workflow.currentTimeMillis();
+              }
+            });
   }
 
   @Override
   public void run(TodoRepository todoRepository) {
 
     while (true) {
-      Workflow.await(() -> !unprocessedTodos.isEmpty());
+      Workflow.await(() -> !unprocessedRequests.isEmpty());
 
-      final Todo todo = unprocessedTodos.remove(0);
+      final Todo todo = unprocessedRequests.remove(0);
 
       updateOrCreateTimer(todo);
     }
@@ -37,8 +46,8 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
 
   @Override
   public void addTodo(final Todo todo) {
-    Todo savedTodo = this.todoService.save(todo);
-    unprocessedTodos.add(savedTodo);
+    final Todo savedTodo = this.todoService.save(todo);
+    unprocessedRequests.add(savedTodo);
   }
 
   @Override
@@ -47,21 +56,25 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
   }
 
   @Override
-  public void updateTodo(final TodoRequest todoRequest) {
+  public void updateTodo(final UpdateTodoRequest updateTodoRequest) {
 
     final Optional<Todo> todo =
         this.todoService.updateTodo(
-            todoRequest.getId(), todoRequest.getDescription(), todoRequest.getDueDate());
+            updateTodoRequest.getId(),
+            updateTodoRequest.getDescription(),
+            updateTodoRequest.getDueDate());
 
-    unprocessedTodos.add(todo.get());
+    unprocessedRequests.add(todo.get());
   }
 
   private void updateOrCreateTimer(final Todo todo) {
 
+    logger.info("updateOrCreateTimer {} ", todo);
     CancellationScope currentTimerScope = timers.get(todo.getId());
 
     if (currentTimerScope != null) {
       currentTimerScope.cancel();
+      timers.remove(todo.getId());
     }
 
     if (todo.getDueDate() != null) {
@@ -70,15 +83,22 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
           Workflow.newCancellationScope(
               () -> {
                 Workflow.newTimer(calculateDeadline(todo))
-                    .thenApply(
-                        t -> {
+                    .handle(
+                        (value, exception) -> {
+                          logger.info("Handle cancellation scope {}", todo);
 
-                          // TODO
-                          //
-                          // this.todoService.updateTodo(todo.getId(), null, null, )
-                          todo.setStatus(TodoStatus.EXPIRED);
-                          timers.remove(todo.getId());
-                          return null;
+                          if (exception == null) {
+                            logger.info("Timer fired");
+
+                            this.todoService.updateTodo(todo.getId(), null, todo.getDueDate());
+                            // todo.setStatus(TodoStatus.EXPIRED);
+                            timers.remove(todo.getId());
+
+                          } else if (exception instanceof CanceledFailure) {
+                            logger.info("Timer cancelled");
+                          }
+
+                          return value;
                         });
               });
 
@@ -90,7 +110,9 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
 
   private Duration calculateDeadline(final Todo todo) {
 
-    long duration = Instant.parse(todo.getDueDate()).toEpochMilli() - Instant.now().toEpochMilli();
+    long duration =
+        Instant.parse(todo.getDueDate()).toEpochMilli()
+            - Instant.ofEpochMilli(Workflow.currentTimeMillis()).toEpochMilli();
 
     return Duration.ofMillis(duration);
   }

@@ -1,6 +1,6 @@
 package com.antmendoza.temporal.domain;
 
-import java.time.Instant;
+import java.util.Objects;
 
 public class Todo {
   private String id;
@@ -43,7 +43,6 @@ public class Todo {
 
   public void setDueDate(final String dueDate) {
     this.dueDate = dueDate;
-    updateStatusBasedOnDueDate();
   }
 
   public TodoStatus getStatus() {
@@ -54,21 +53,35 @@ public class Todo {
     this.status = status;
   }
 
-  private void updateStatusBasedOnDueDate() {
+  @Override
+  public boolean equals(final Object o) {
+    if (o == null || getClass() != o.getClass()) return false;
+    final Todo todo = (Todo) o;
+    return Objects.equals(id, todo.id)
+        && Objects.equals(title, todo.title)
+        && Objects.equals(dueDate, todo.dueDate)
+        && status == todo.status;
+  }
 
-    if (this.dueDate != null) {
-      Instant dueDateInstant = Instant.parse(this.dueDate); // Parse the due date as an Instant
-      Instant currentInstant = Instant.now(); // Get the current Instant
-      if (dueDateInstant.isAfter(currentInstant)) {
-        this.status = TodoStatus.ACTIVE;
-      } else {
-        this.status = TodoStatus.COMPLETED; // Or some other default status for past dates
-      }
-      return;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, title, dueDate, status);
+  }
 
-    if (this.status != TodoStatus.COMPLETED) {
-      this.status = TodoStatus.ACTIVE;
-    }
+  @Override
+  public String toString() {
+    return "Todo{"
+        + "id='"
+        + id
+        + '\''
+        + ", title='"
+        + title
+        + '\''
+        + ", dueDate='"
+        + dueDate
+        + '\''
+        + ", status="
+        + status
+        + '}';
   }
 }
