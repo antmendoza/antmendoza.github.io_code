@@ -1,7 +1,8 @@
 package com.antmendoza.temporal;
 
 import com.antmendoza.temporal.domain.Todo;
-import com.antmendoza.temporal.domain.TodoList;
+import com.antmendoza.temporal.domain.TodoRepository;
+import com.antmendoza.temporal.domain.TodoRequest;
 import io.temporal.workflow.*;
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
 public interface WorkflowTodoList {
 
   @WorkflowMethod
-  void run(TodoList todoList);
+  void run(TodoRepository todoRepository);
 
   @UpdateMethod
   void addTodo(Todo todo);
@@ -18,5 +19,5 @@ public interface WorkflowTodoList {
   List<Todo> getTodos();
 
   @UpdateMethod
-  void updateTodo(Todo todo);
+  void updateTodo(TodoRequest todoRequest);
 }

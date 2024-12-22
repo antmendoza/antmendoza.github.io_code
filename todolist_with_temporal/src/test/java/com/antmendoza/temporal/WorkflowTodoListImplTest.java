@@ -1,7 +1,9 @@
 package com.antmendoza.temporal;
 
 import com.antmendoza.temporal.domain.Todo;
-import com.antmendoza.temporal.domain.TodoList;
+import com.antmendoza.temporal.domain.TodoRepository;
+import com.antmendoza.temporal.domain.TodoRequest;
+import com.antmendoza.temporal.domain.TodoStatus;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.testing.TestWorkflowRule;
@@ -19,9 +21,9 @@ public class WorkflowTodoListImplTest {
   public TestWorkflowRule testWorkflowRule =
       TestWorkflowRule.newBuilder()
           .setDoNotStart(true)
-          // .setUseExternalService(true)
-          // .setNamespace("default")
-          // .setTarget("127.0.0.1:7233")
+          //  .setUseExternalService(true)
+          //  .setNamespace("default")
+          //  .setTarget("127.0.0.1:7233")
           .build();
 
   @After
@@ -47,7 +49,7 @@ public class WorkflowTodoListImplTest {
                 .setWorkflowId(WORKFLOW_ID)
                 .build());
 
-    WorkflowClient.execute(workflow::run, new TodoList());
+    WorkflowClient.execute(workflow::run, new TodoRepository());
 
     workflow.addTodo(new Todo(UUID.randomUUID().toString(), "todo_1"));
 
@@ -75,12 +77,12 @@ public class WorkflowTodoListImplTest {
                 .setWorkflowId(WORKFLOW_ID)
                 .build());
 
-    WorkflowClient.execute(workflow::run, new TodoList());
+    WorkflowClient.execute(workflow::run, new TodoRepository());
 
     final String taskId = UUID.randomUUID().toString();
     workflow.addTodo(new Todo(taskId, "todo_1"));
 
-    workflow.updateTodo(new Todo(taskId, "todo_2"));
+    workflow.updateTodo(new TodoRequest(taskId, "todo_2", null));
 
     Assert.assertEquals(1, workflow.getTodos().size());
 
@@ -104,7 +106,7 @@ public class WorkflowTodoListImplTest {
                 .setWorkflowId(WORKFLOW_ID)
                 .build());
 
-    WorkflowClient.execute(workflow::run, new TodoList());
+    WorkflowClient.execute(workflow::run, new TodoRepository());
 
     final String taskId = UUID.randomUUID().toString();
     workflow.addTodo(new Todo(taskId, "todo_1", Instant.now().plusSeconds(20).toString()));
@@ -112,17 +114,17 @@ public class WorkflowTodoListImplTest {
     Assert.assertEquals(1, workflow.getTodos().size());
 
     Assert.assertEquals("todo_1", workflow.getTodos().get(0).getTitle());
-    Assert.assertEquals("Active", workflow.getTodos().get(0).getStatus());
+    Assert.assertEquals(TodoStatus.ACTIVE, workflow.getTodos().get(0).getStatus());
 
     testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(20));
 
-    Assert.assertEquals("Expired", workflow.getTodos().get(0).getStatus());
+    Assert.assertEquals(TodoStatus.EXPIRED, workflow.getTodos().get(0).getStatus());
 
-    workflow.addTodo(new Todo(taskId, "todo_1", Instant.now().plusSeconds(5).toString()));
+    workflow.updateTodo(new TodoRequest(taskId, "todo_1", Instant.now().plusSeconds(5).toString()));
 
-    Assert.assertEquals("Active", workflow.getTodos().get(0).getStatus());
+    Assert.assertEquals(TodoStatus.ACTIVE, workflow.getTodos().get(0).getStatus());
     testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(5));
 
-    Assert.assertEquals("Expired", workflow.getTodos().get(0).getStatus());
+    Assert.assertEquals(TodoStatus.EXPIRED, workflow.getTodos().get(0).getStatus());
   }
 }

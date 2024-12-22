@@ -1,6 +1,6 @@
 package com.antmendoza.temporal;
 
-import com.antmendoza.temporal.domain.TodoList;
+import com.antmendoza.temporal.domain.TodoRepository;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 
@@ -18,6 +18,6 @@ public class WorkflowClient_ {
         client.newWorkflowStub(
             WorkflowTodoList.class, WorkflowOptions.newBuilder().setWorkflowId("").build());
 
-    io.temporal.client.WorkflowClient.start(workflow::run, new TodoList());
+    io.temporal.client.WorkflowClient.start(workflow::run, new TodoRepository());
   }
 }
