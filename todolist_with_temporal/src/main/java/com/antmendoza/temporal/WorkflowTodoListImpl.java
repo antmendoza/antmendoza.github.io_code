@@ -87,17 +87,16 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
                         (value, exception) -> {
                           logger.info("Handle cancellation scope {}", todo);
 
-                          if (exception == null) {
-                            logger.info("Timer fired");
-
-                            this.todoService.updateTodo(todo.getId(), null, todo.getDueDate());
-                            // todo.setStatus(TodoStatus.EXPIRED);
-                            timers.remove(todo.getId());
-
-                          } else if (exception instanceof CanceledFailure) {
+                          if (exception instanceof CanceledFailure) {
                             logger.info("Timer cancelled");
+                            return null;
                           }
 
+                          logger.info("Timer fired");
+
+                          this.todoService.updateTodo(
+                              todo.getId(), todo.getTitle(), todo.getDueDate());
+                          timers.remove(todo.getId());
                           return value;
                         });
               });

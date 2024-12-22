@@ -18,12 +18,8 @@ public class TodoService {
     Optional<Todo> optional = todoRepository.findById(id);
     optional.ifPresent(
         todo -> {
-          if (newTitle != null) {
-            todo.setTitle(newTitle);
-          }
-          if (newDueDate != null) {
-            todo.setDueDate(newDueDate);
-          }
+          todo.setTitle(newTitle);
+          todo.setDueDate(newDueDate);
 
           this.updateStatusBasedOnDueDate(todo);
           todoRepository.save(todo);

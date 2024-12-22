@@ -180,6 +180,46 @@ public class WorkflowTodoListImplTest {
     Assert.assertEquals(TodoStatus.EXPIRED, workflow.getTodos().get(0).getStatus());
   }
 
+  @Test
+  public void testUpdateDueDateToNull() {
+    final String WORKFLOW_ID = "MY_WORKFLOW_ID";
+
+    testWorkflowRule.getWorker().registerWorkflowImplementationTypes(WorkflowTodoListImpl.class);
+
+    testWorkflowRule.getTestEnvironment().start();
+
+    final WorkflowClient workflowClient = testWorkflowRule.getWorkflowClient();
+    final WorkflowTodoList workflow =
+        workflowClient.newWorkflowStub(
+            WorkflowTodoList.class,
+            WorkflowOptions.newBuilder()
+                .setTaskQueue(testWorkflowRule.getTaskQueue())
+                .setWorkflowId(WORKFLOW_ID)
+                .build());
+
+    WorkflowClient.execute(workflow::run, new TodoRepository());
+
+    final String todoId = UUID.randomUUID().toString();
+    final int oneDayInSeconds = 86400;
+    workflow.addTodo(
+        new Todo(todoId, "todo_1", currentInstantForTestEnvironment().plusSeconds(20).toString()));
+
+    Assert.assertEquals(1, workflow.getTodos().size());
+
+    Assert.assertEquals("todo_1", workflow.getTodos().get(0).getTitle());
+    Assert.assertEquals(TodoStatus.ACTIVE, workflow.getTodos().get(0).getStatus());
+
+    testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(10));
+
+    Assert.assertEquals(TodoStatus.ACTIVE, workflow.getTodos().get(0).getStatus());
+
+    workflow.updateTodo(new UpdateTodoRequest(todoId, "todo_2", null));
+
+    testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(30));
+
+    Assert.assertEquals(TodoStatus.ACTIVE, workflow.getTodos().get(0).getStatus());
+  }
+
   private Instant currentInstantForTestEnvironment() {
     return Instant.ofEpochMilli(testWorkflowRule.getTestEnvironment().currentTimeMillis());
   }
