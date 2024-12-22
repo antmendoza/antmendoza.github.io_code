@@ -79,10 +79,10 @@ public class WorkflowTodoListImplTest {
 
     WorkflowClient.execute(workflow::run, new TodoRepository());
 
-    final String taskId = UUID.randomUUID().toString();
-    workflow.addTodo(new Todo(taskId, "todo_1"));
+    final String todoId = UUID.randomUUID().toString();
+    workflow.addTodo(new Todo(todoId, "todo_1"));
 
-    workflow.updateTodo(new TodoRequest(taskId, "todo_2", null));
+    workflow.updateTodo(new TodoRequest(todoId, "todo_2", null));
 
     Assert.assertEquals(1, workflow.getTodos().size());
 
@@ -108,8 +108,8 @@ public class WorkflowTodoListImplTest {
 
     WorkflowClient.execute(workflow::run, new TodoRepository());
 
-    final String taskId = UUID.randomUUID().toString();
-    workflow.addTodo(new Todo(taskId, "todo_1", Instant.now().plusSeconds(20).toString()));
+    final String todoId = UUID.randomUUID().toString();
+    workflow.addTodo(new Todo(todoId, "todo_1", Instant.now().plusSeconds(20).toString()));
 
     Assert.assertEquals(1, workflow.getTodos().size());
 
@@ -120,7 +120,7 @@ public class WorkflowTodoListImplTest {
 
     Assert.assertEquals(TodoStatus.EXPIRED, workflow.getTodos().get(0).getStatus());
 
-    workflow.updateTodo(new TodoRequest(taskId, "todo_1", Instant.now().plusSeconds(5).toString()));
+    workflow.updateTodo(new TodoRequest(todoId, "todo_1", Instant.now().plusSeconds(5).toString()));
 
     Assert.assertEquals(TodoStatus.ACTIVE, workflow.getTodos().get(0).getStatus());
     testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(5));

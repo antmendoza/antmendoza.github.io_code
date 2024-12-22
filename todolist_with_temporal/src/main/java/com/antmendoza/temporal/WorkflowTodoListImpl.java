@@ -29,9 +29,9 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
     while (true) {
       Workflow.await(() -> !unprocessedTodos.isEmpty());
 
-      final Todo task = unprocessedTodos.remove(0);
+      final Todo todo = unprocessedTodos.remove(0);
 
-      updateOrCreateTimerTask(task);
+      updateOrCreateTimer(todo);
     }
   }
 
@@ -56,41 +56,41 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
     unprocessedTodos.add(todo.get());
   }
 
-  private void updateOrCreateTimerTask(final Todo task) {
+  private void updateOrCreateTimer(final Todo todo) {
 
-    CancellationScope currentTimerScope = timers.get(task.getId());
+    CancellationScope currentTimerScope = timers.get(todo.getId());
 
     if (currentTimerScope != null) {
       currentTimerScope.cancel();
     }
 
-    if (task.getDueDate() != null) {
+    if (todo.getDueDate() != null) {
 
       CancellationScope cancelableScope =
           Workflow.newCancellationScope(
               () -> {
-                Workflow.newTimer(calculateDeadline(task))
+                Workflow.newTimer(calculateDeadline(todo))
                     .thenApply(
                         t -> {
 
                           // TODO
                           //
-                          // this.todoService.updateTodo(task.getId(), null, null, )
-                          task.setStatus(TodoStatus.EXPIRED);
-                          timers.remove(task.getId());
+                          // this.todoService.updateTodo(todo.getId(), null, null, )
+                          todo.setStatus(TodoStatus.EXPIRED);
+                          timers.remove(todo.getId());
                           return null;
                         });
               });
 
       cancelableScope.run();
 
-      timers.put(task.getId(), cancelableScope);
+      timers.put(todo.getId(), cancelableScope);
     }
   }
 
-  private Duration calculateDeadline(final Todo task) {
+  private Duration calculateDeadline(final Todo todo) {
 
-    long duration = Instant.parse(task.getDueDate()).toEpochMilli() - Instant.now().toEpochMilli();
+    long duration = Instant.parse(todo.getDueDate()).toEpochMilli() - Instant.now().toEpochMilli();
 
     return Duration.ofMillis(duration);
   }
