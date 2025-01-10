@@ -45,7 +45,7 @@ public class WorkflowWorker {
 
 
         String envTemporalHost = System.getenv("TEMPORAL_ADDRESS");
-        Boolean useTemporalAddress = Boolean.getBoolean(System.getenv("USE_TEMPORAL_ADDRESS"));
+        Boolean useTemporalAddress = Boolean.parseBoolean(System.getenv("USE_TEMPORAL_ADDRESS"));
 
         System.out.println("temporalHost: " + temporalHost);
         System.out.println("useTemporalAddress: " + useTemporalAddress);

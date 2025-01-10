@@ -172,3 +172,19 @@ backend_app-1   | 17:46:58.426 { } [main] INFO  c.a.t.TemporalSpringbootDemoAppl
 ```
 
 
+## Trying to access the temporal server from the backend docker image
+
+```
+docker exec -it 2520da73f617  bash
+bash-4.4# curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.7/grpcurl_1.8.7_linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin
+bash-4.4# grpcurl  -plaintext localhost:7233 list
+Failed to dial target host "localhost:7233": dial tcp [::1]:7233: connect: connection refused
+bash-4.4# grpcurl  -plaintext temporal:7233 list
+Failed to dial target host "temporal:7233": dial tcp 172.28.0.2:7233: connect: connection refused
+bash-4.4# 
+```
+
+
+
+
+
