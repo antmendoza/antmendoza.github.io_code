@@ -1,4 +1,4 @@
-# Todolist with Temporal
+# To-do list with Temporal
 
 
 
