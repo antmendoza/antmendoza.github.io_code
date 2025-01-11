@@ -29,4 +29,4 @@ services:
       - temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - USE_TEMPORAL_ADDRESS=false
+      - USE_TEMPORAL_ADDRESS=true

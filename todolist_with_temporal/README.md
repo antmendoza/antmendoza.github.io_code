@@ -1,6 +1,7 @@
 # Todolist with Temporal
 
 
+
 ![Screenshot 2025-01-10 at 18.23.12.png](files/Screenshot%202025-01-10%20at%2018.23.12.png)
 
 ---
@@ -11,6 +12,17 @@
 
 
 ## Running the project
+
+
+### with docker compose
+
+```bash
+docker compose down --remove-orphans
+docker compose up --build  --force-recreate  --no-deps
+
+```
+
+
 
 ### run each component separately
 
@@ -38,16 +50,6 @@ cd backend
 ./start-backend.sh
 ```
 
-
-
-### with docker compose (WIP)
-
-```bash
-docker compose down --remove-orphans
-docker compose up --build  --force-recreate  --no-deps
-
-```
-// docker compose up --build --force-recreate --no-deps
 
 
 

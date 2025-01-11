@@ -15,6 +15,12 @@ COPY . .
 
 RUN npm install -g @angular/cli
 
+
+
+RUN apk --no-cache add curl
+RUN curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.7/grpcurl_1.8.7_linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin
+
+
 EXPOSE 4200
 
 # Start the app
