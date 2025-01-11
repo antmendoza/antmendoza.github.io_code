@@ -15,12 +15,6 @@ RUN ./mvnw clean package -DskipTests
 # Set the working directory in the container
 WORKDIR /app/target
 
-
-
-RUN curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.7/grpcurl_1.8.7_linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin
-
-
-
 # Copy the built JAR file from the previous stage to the container
 #COPY from=build /app/target/backend.jar .
 # Set the command to run the application
