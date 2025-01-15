@@ -1,4 +1,9 @@
-package com.antmendoza.temporal.domain;
+package com.antmendoza.temporal.application.service;
+
+import com.antmendoza.temporal.domain.model.Todo;
+import com.antmendoza.temporal.domain.model.TodoStatus;
+import com.antmendoza.temporal.infrastructure.persistence.TimerRepository;
+import com.antmendoza.temporal.infrastructure.persistence.TodoRepository;
 
 import java.time.Instant;
 import java.util.List;

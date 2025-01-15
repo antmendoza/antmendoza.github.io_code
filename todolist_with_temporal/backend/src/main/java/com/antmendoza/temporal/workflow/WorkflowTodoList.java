@@ -1,8 +1,8 @@
 package com.antmendoza.temporal.workflow;
 
-import com.antmendoza.temporal.domain.Todo;
+import com.antmendoza.temporal.domain.model.Todo;
 import com.antmendoza.temporal.domain.TodoList;
-import com.antmendoza.temporal.domain.TodoRequest;
+import com.antmendoza.temporal.presentation.dto.TodoRequest;
 import io.temporal.workflow.*;
 import java.util.List;
 

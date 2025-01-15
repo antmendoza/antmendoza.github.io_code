@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.domain;
+package com.antmendoza.temporal.domain.model;
 
 import java.util.Objects;
 
@@ -72,7 +72,7 @@ public class Todo {
   }
 
   @Override
-  protected Todo clone(){
+  public Todo clone(){
     return new Todo(this.getId(),this.title,this.dueDate,this.status);
   }
 

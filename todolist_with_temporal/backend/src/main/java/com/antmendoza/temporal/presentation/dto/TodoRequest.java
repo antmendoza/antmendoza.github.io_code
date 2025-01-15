@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.domain;
+package com.antmendoza.temporal.presentation.dto;
 
 public class TodoRequest {
 

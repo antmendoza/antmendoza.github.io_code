@@ -53,6 +53,7 @@ export class AppComponent {
 
   constructor(private http: HttpClient) {
     this.reloadTodoList();
+    setInterval(()=> { this.reloadTodoList() }, 5 * 1000);
   }
 
   /////////////////////////// UI METHODS ///////////////////////////
@@ -60,7 +61,7 @@ export class AppComponent {
 
   public save(): void {
 
-    const todoId = (Math.random() + new Date().getMilliseconds())+"".replace('.', '');
+    const todoId = (Math.random() + new Date().getMilliseconds())+"";
 
     const obj: ITodo = {
       id: todoId,
@@ -213,4 +214,7 @@ export class AppComponent {
   }
 
 
+  setDate() {
+    this.dueDate.set(new Date().toISOString());
+  }
 }

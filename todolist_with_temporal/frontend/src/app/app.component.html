@@ -1,7 +1,7 @@
 <div class="container">
   <mat-card appearance="outlined" class="card-layout">
     <mat-card-header>
-      <mat-card-title> Add Todo</mat-card-title>
+      <mat-card-title> Add To-do</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       @if (selectedIndex >= 0) {
@@ -20,7 +20,7 @@
           <mat-label>MM/DD/YYYY</mat-label>
           <input matInput [matDatepicker]="picker"
                  [(ngModel)]="dueDate"
-                 (click)="picker.open()">
+                 (click)="picker.open(); setDate()">
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
 
@@ -44,8 +44,12 @@
       </div>
 
 
+      <br/>
+      <hr/>
+
+
       <mat-card-header>
-        <mat-card-title> TODO list</mat-card-title>
+        <mat-card-title> To-do list</mat-card-title>
       </mat-card-header>
 
       @for (item of todoList; track item.id; let i = $index) {

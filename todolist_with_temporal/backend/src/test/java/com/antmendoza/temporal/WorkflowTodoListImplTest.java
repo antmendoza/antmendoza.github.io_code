@@ -1,8 +1,8 @@
 package com.antmendoza.temporal;
 
 import com.antmendoza.temporal.domain.TodoList;
-import com.antmendoza.temporal.domain.TodoRequest;
-import com.antmendoza.temporal.domain.TodoStatus;
+import com.antmendoza.temporal.domain.model.TodoStatus;
+import com.antmendoza.temporal.presentation.dto.TodoRequest;
 import com.antmendoza.temporal.workflow.WorkflowTodoList;
 import com.antmendoza.temporal.workflow.WorkflowTodoListImpl;
 import io.temporal.client.WorkflowClient;

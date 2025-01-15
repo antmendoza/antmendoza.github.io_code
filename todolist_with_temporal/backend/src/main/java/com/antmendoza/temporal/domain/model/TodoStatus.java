@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.domain;
+package com.antmendoza.temporal.domain.model;
 
 public enum TodoStatus {
   ACTIVE,

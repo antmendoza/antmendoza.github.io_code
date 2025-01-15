@@ -1,5 +1,6 @@
-package com.antmendoza.temporal.domain;
+package com.antmendoza.temporal.infrastructure.persistence;
 
+import com.antmendoza.temporal.domain.model.Todo;
 import io.temporal.failure.CanceledFailure;
 import io.temporal.workflow.CancellationScope;
 import io.temporal.workflow.TimerOptions;

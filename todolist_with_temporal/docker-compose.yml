@@ -17,9 +17,6 @@ services:
       - "4200:4200"
     depends_on:
       - backend_app
-    environment:
-      - TEMPORAL_BACKEND=backend_app:3030
-
 
   backend_app:
     build: ./backend

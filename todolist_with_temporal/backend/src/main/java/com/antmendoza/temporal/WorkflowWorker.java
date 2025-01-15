@@ -38,33 +38,19 @@ public class WorkflowWorker {
     public static WorkflowClient getWorkflowClient() {
         String temporalHost = "localhost:7233";
 
-
-        System.out.println("TEMPORAL_ADDRESS: " + System.getenv("TEMPORAL_ADDRESS"));
-        System.out.println("USE_TEMPORAL_ADDRESS: " + System.getenv("USE_TEMPORAL_ADDRESS"));
-
-
-
-        String envTemporalHost = System.getenv("TEMPORAL_ADDRESS");
-        Boolean useTemporalAddress = Boolean.parseBoolean(System.getenv("USE_TEMPORAL_ADDRESS"));
-
-        System.out.println("temporalHost: " + temporalHost);
-        System.out.println("useTemporalAddress: " + useTemporalAddress);
+        final String envTemporalHost = System.getenv("TEMPORAL_ADDRESS");
+        final Boolean useTemporalAddress = Boolean.parseBoolean(System.getenv("USE_TEMPORAL_ADDRESS"));
 
         if (envTemporalHost != null && useTemporalAddress) {
-
             temporalHost = envTemporalHost;
         }
 
-        System.out.println("Temporal host: " + temporalHost);
-
 
         final WorkflowServiceStubs service =
-                //WorkflowServiceStubs.newLocalServiceStubs();
-
-            WorkflowServiceStubs.newServiceStubs
-                   (WorkflowServiceStubsOptions.newBuilder()
-                          .setTarget(temporalHost)
-                         .build());
+                WorkflowServiceStubs.newServiceStubs
+                        (WorkflowServiceStubsOptions.newBuilder()
+                                .setTarget(temporalHost)
+                                .build());
 
         final WorkflowClient client = WorkflowClient.newInstance(service);
         return client;

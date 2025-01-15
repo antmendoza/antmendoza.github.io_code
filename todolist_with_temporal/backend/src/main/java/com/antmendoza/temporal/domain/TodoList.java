@@ -1,12 +1,10 @@
 package com.antmendoza.temporal.domain;
 
+import com.antmendoza.temporal.domain.model.Todo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class TodoList {
   private List<Todo> todos = new ArrayList<>();
