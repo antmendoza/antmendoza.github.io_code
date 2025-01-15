@@ -1,6 +1,5 @@
-package com.antmendoza.temporal.domain;
+package com.antmendoza.temporal.domain.model;
 
-import com.antmendoza.temporal.domain.model.Todo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;

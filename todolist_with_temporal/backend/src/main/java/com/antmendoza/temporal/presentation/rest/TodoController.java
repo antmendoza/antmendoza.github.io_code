@@ -1,10 +1,10 @@
-package com.antmendoza.temporal.presentation.controller;
+package com.antmendoza.temporal.presentation.rest;
 
-import com.antmendoza.temporal.WorkflowWorker;
+import com.antmendoza.temporal.infrastructure.workflow.WorkflowWorker;
 import com.antmendoza.temporal.domain.model.Todo;
-import com.antmendoza.temporal.domain.TodoList;
+import com.antmendoza.temporal.domain.model.TodoList;
 import com.antmendoza.temporal.presentation.dto.TodoRequest;
-import com.antmendoza.temporal.workflow.WorkflowTodoList;
+import com.antmendoza.temporal.application.service.WorkflowTodoList;
 import io.temporal.api.enums.v1.WorkflowIdConflictPolicy;
 import io.temporal.client.UpdateOptions;
 import io.temporal.client.WithStartWorkflowOperation;
@@ -16,13 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @org.springframework.web.bind.annotation.RestController
-public class RestController {
+public class TodoController {
     final String workflowId = "my-todo";
 
 
     private final WorkflowClient workflowClient;
 
-    public RestController() {
+    public TodoController() {
         this.workflowClient = WorkflowWorker.getWorkflowClient();
     }
 

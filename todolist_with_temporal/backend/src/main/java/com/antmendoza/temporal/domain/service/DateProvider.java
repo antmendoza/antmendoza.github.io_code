@@ -1,4 +1,4 @@
-package com.antmendoza.temporal.application.service;
+package com.antmendoza.temporal.domain.service;
 
 public interface DateProvider {
 

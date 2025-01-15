@@ -1,12 +1,12 @@
 package com.antmendoza.temporal.infrastructure.persistence;
 
 import com.antmendoza.temporal.domain.model.Todo;
+import com.antmendoza.temporal.infrastructure.logging.LoggerFactory;
 import io.temporal.failure.CanceledFailure;
 import io.temporal.workflow.CancellationScope;
 import io.temporal.workflow.TimerOptions;
 import io.temporal.workflow.Workflow;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class TimerRepository {
+
 
     private static final Logger logger = LoggerFactory.getLogger(TimerRepository.class);
     private final Map<String, TimerData> timers = new HashMap<>();

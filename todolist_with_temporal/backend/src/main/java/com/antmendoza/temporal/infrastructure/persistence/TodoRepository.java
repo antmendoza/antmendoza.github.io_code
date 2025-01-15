@@ -1,6 +1,6 @@
 package com.antmendoza.temporal.infrastructure.persistence;
 
-import com.antmendoza.temporal.domain.TodoList;
+import com.antmendoza.temporal.domain.model.TodoList;
 import com.antmendoza.temporal.domain.model.Todo;
 
 import java.util.List;

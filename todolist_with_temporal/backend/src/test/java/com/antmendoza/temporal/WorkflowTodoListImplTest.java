@@ -1,10 +1,10 @@
 package com.antmendoza.temporal;
 
-import com.antmendoza.temporal.domain.TodoList;
+import com.antmendoza.temporal.domain.model.TodoList;
 import com.antmendoza.temporal.domain.model.TodoStatus;
 import com.antmendoza.temporal.presentation.dto.TodoRequest;
-import com.antmendoza.temporal.workflow.WorkflowTodoList;
-import com.antmendoza.temporal.workflow.WorkflowTodoListImpl;
+import com.antmendoza.temporal.application.service.WorkflowTodoList;
+import com.antmendoza.temporal.infrastructure.workflow.WorkflowTodoListImpl;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.testing.TestWorkflowEnvironment;

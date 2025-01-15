@@ -1,9 +1,11 @@
-package com.antmendoza.temporal.workflow;
+package com.antmendoza.temporal.infrastructure.workflow;
 
-import com.antmendoza.temporal.application.service.DateProvider;
+import com.antmendoza.temporal.domain.model.TodoList;
+import com.antmendoza.temporal.domain.service.DateProvider;
 import com.antmendoza.temporal.application.service.TodoService;
-import com.antmendoza.temporal.domain.*;
+import com.antmendoza.temporal.application.service.WorkflowTodoList;
 import com.antmendoza.temporal.domain.model.Todo;
+import com.antmendoza.temporal.infrastructure.logging.LoggerFactory;
 import com.antmendoza.temporal.infrastructure.persistence.TimerRepository;
 import com.antmendoza.temporal.infrastructure.persistence.TodoRepository;
 import com.antmendoza.temporal.presentation.dto.TodoRequest;
@@ -15,13 +17,14 @@ import org.slf4j.Logger;
 
 public class WorkflowTodoListImpl implements WorkflowTodoList {
 
-  private final Logger logger = Workflow.getLogger(WorkflowTodoListImpl.class.getName());
+  private final Logger logger = LoggerFactory.getLogger(WorkflowTodoListImpl.class);
 
   private final TodoService todoService;
 
   @WorkflowInit
   public WorkflowTodoListImpl(TodoList todoList) {
     final DateProvider dateProvider = Workflow::currentTimeMillis;
+
     this.todoService =
         new TodoService(new TodoRepository(todoList),
                 new TimerRepository(),
@@ -31,7 +34,7 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
   @Override
   public void run(TodoList todoList) {
 
-    //recreate the in-memory todo list, including the timer for each item
+    //recreate the in-memory to-do list, including the timer for each item
     todoList.getAll().forEach(t ->
             this.todoService.updateTodo(t.getId(), t.getTitle(), t.getDueDate())
     );
@@ -47,6 +50,8 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
 
   @Override
   public void addTodo(final TodoRequest todoRequest) {
+
+    logger.info("Adding todo: {}", todoRequest);
     final Todo todo =
         new Todo(todoRequest.getId(), todoRequest.getTitle(), todoRequest.getDueDate());
     this.todoService.save(todo);
@@ -54,18 +59,24 @@ public class WorkflowTodoListImpl implements WorkflowTodoList {
 
   @Override
   public void updateTodo(final TodoRequest todoRequest) {
+
+    logger.info("Updating todo: {}", todoRequest);
+
     this.todoService.updateTodo(
         todoRequest.getId(), todoRequest.getTitle(), todoRequest.getDueDate());
   }
 
   @Override
   public void completeTodo(final String id) {
+    logger.info("Completing todo: {}", id);
+
     this.todoService.complete(id);
   }
 
 
   @Override
   public void deleteTodo(final String id) {
+    logger.info("Deleting todo: {}", id);
     this.todoService.deleteTodo(id);
   }
 
