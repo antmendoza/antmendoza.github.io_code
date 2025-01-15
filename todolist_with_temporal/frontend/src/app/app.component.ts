@@ -217,6 +217,7 @@ export class AppComponent {
   setDate() {
     let newDate = new Date();
     newDate.setMinutes(newDate.getMinutes() + 1);
+    newDate.setSeconds(0);
     this.dueDate.set(newDate.toISOString());
   }
 }
