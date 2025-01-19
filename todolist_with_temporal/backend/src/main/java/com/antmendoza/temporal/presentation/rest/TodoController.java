@@ -17,7 +17,7 @@ import java.util.List;
 
 @org.springframework.web.bind.annotation.RestController
 public class TodoController {
-    final String workflowId = "my-todo";
+    final String workflowId = "my-todo-list";
 
 
     private final WorkflowClient workflowClient;
@@ -84,6 +84,7 @@ public class TodoController {
             final List<Todo> todos = workflow.getTodos();
             return todos;
         } catch (Exception e) {
+            // ignore if workflow does not exist
         }
         return new ArrayList<>();
 
