@@ -26,7 +26,7 @@ Note: you can't start your worker with `npm run start:worker` in production mode
 1. `temporal server start-dev` to start [Temporal Server](https://github.com/temporalio/cli/#installation).
 2. `npm run start:worker` to start the Worker.
 3. `npm run start:server` to start the NestJS server.
-4. Visit `http://localhost:3000/exchange-rates/AUD` to see the most recent exchange rate for AUD (Australian Dollar)
+4. Visit `http://localhost:3000/messaging` to see the list of messages 
 
 ## Building the app
 

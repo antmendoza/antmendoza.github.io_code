@@ -40,10 +40,10 @@ export const msgProviders: Provider[] = [
           taskQueue,
           workflowId: 'my-msg-list',
         });
-        console.log('Started new exchange rates workflow');
+        console.log('Started new workflow');
       } catch (err) {
         if (err instanceof WorkflowExecutionAlreadyStartedError) {
-          console.log('Reusing existing exchange rates workflow');
+          console.log('Reusing existing workflow');
           handle = client.workflow.getHandle('my-msg-list');
         } else {
           throw err;

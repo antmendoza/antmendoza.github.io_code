@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MsgService } from './msg.service';
 import { msgProviders } from './msg.providers';
 
-describe('ExchangeRatesService', () => {
+describe('MsgService', () => {
   let app: TestingModule;
   const rates = { AUD: 1.5 };
 
@@ -23,11 +23,11 @@ describe('ExchangeRatesService', () => {
       .compile();
   });
 
-  describe('ExchangeRatesService', () => {
-    it('should return exchange rates', async () => {
-      const exchangeRatesService = app.get(MsgService);
+  describe('MsgService', () => {
+    it('should return  rates', async () => {
+      const msgService = app.get(MsgService);
 
-      const rates = await exchangeRatesService.getExchangeRates();
+      const rates = await msgService.getMessagesQuery();
 
       expect(rates).toEqual({ AUD: 1.5 });
     });

@@ -1,18 +1,18 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get} from '@nestjs/common';
 import { MsgService } from './msg.service';
 
-@Controller('exchange-rates')
-export class ExchangeRatesController {
-  constructor(private readonly exchangeRatesService: MsgService) {}
+@Controller('messaging')
+export class MsgController {
+  constructor(private readonly msgService: MsgService) {}
 
-  @Get(':currency')
-  async getExchangeRates(@Param('currency') currency: []): Promise<any> {
-    const rates = await this.exchangeRatesService.getMessagesQuery();
+  @Get()
+  async getMsgList(): Promise<any> {
+    const messages = await this.msgService.getMessagesQuery();
 
-    if (rates === null) {
-      return undefined;
+    if (messages === null) {
+      return [];
     }
 
-    return rates;
+    return messages;
   }
 }

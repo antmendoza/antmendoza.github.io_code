@@ -12,4 +12,4 @@ export class MsgService {
 }
 
 @Injectable()
-export class ExchangeRatesClient extends Client {}
+export class MsgClient extends Client {}

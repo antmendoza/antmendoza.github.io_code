@@ -1,11 +1,11 @@
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Runtime, DefaultLogger, Worker } from '@temporalio/worker';
 import { Client, WorkflowHandle } from '@temporalio/client';
-import { getExchangeRatesQuery } from '@app/shared';
+import { getMessagesQuery } from '@app/shared';
 import { msgWorkflow } from './workflows';
 import { setTimeout } from 'timers/promises';
 
-const taskQueue = 'test-exchange-rates';
+const taskQueue = 'test-msgs';
 
 describe('example workflow', function () {
   let client: Client;
@@ -15,11 +15,6 @@ describe('example workflow', function () {
   let env: TestWorkflowEnvironment;
 
   beforeAll(async function () {
-    const activities = {
-      getExchangeRates: () => Promise.resolve({ AUD: 1.27 }),
-    };
-    jest.spyOn(activities, 'getExchangeRates');
-
     // Filter INFO log messages for clearer test output
     Runtime.install({ logger: new DefaultLogger('WARN') });
     env = await TestWorkflowEnvironment.createLocal();
@@ -27,7 +22,6 @@ describe('example workflow', function () {
       connection: env.nativeConnection,
       taskQueue,
       workflowsPath: require.resolve('./workflows.ts'),
-      activities,
     });
 
     const runPromise = worker.run();
@@ -41,7 +35,7 @@ describe('example workflow', function () {
     client = env.client;
     /* eslint-disable @typescript-eslint/no-empty-function */
     await client.workflow
-      .getHandle('exchange-rates-workflow')
+      .getHandle('msg-workflow')
       .terminate()
       .catch(() => {});
 
@@ -49,7 +43,7 @@ describe('example workflow', function () {
       handle = await client.workflow.start(msgWorkflow, {
         taskQueue,
         workflowExecutionTimeout: 10_000,
-        workflowId: 'exchange-rates-workflow',
+        workflowId: 'msg-workflow',
       });
       return handle;
     };
@@ -65,11 +59,11 @@ describe('example workflow', function () {
     await handle.terminate();
   });
 
-  it('allows querying the latest exchange rate', async function () {
+  it('allows querying the list of messages', async function () {
     const handle = await execute();
     // This generally takes less than one second, but allow up to 5 seconds for slow CI environments
     await setTimeout(5000);
-    const result = await handle.query(getExchangeRatesQuery);
-    expect(result).toEqual({ AUD: 1.27 });
+    const result = await handle.query(getMessagesQuery);
+    expect(result).toEqual([]);
   });
 });

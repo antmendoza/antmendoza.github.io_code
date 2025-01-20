@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { MsgWorkerModule } from './exchange-rates-worker/msg-worker.module';
+import { MsgWorkerModule } from './msg-worker/msg-worker.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(MsgWorkerModule);
