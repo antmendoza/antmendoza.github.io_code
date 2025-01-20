@@ -9,7 +9,7 @@ import {
 } from '@temporalio/client';
 import { taskQueue } from '@app/shared';
 
-export const exchangeRatesProviders: Provider[] = [
+export const msgProviders: Provider[] = [
   {
     provide: 'CONNECTION_CONFIG',
     useValue: {
@@ -32,19 +32,19 @@ export const exchangeRatesProviders: Provider[] = [
     inject: ['CONNECTION'],
   },
   {
-    provide: 'EXCHANGE_RATES_WORKFLOW_HANDLE',
+    provide: 'MSG_WORKFLOW_HANDLE',
     useFactory: async (client: Client) => {
       let handle: WorkflowHandle<Workflow>;
       try {
-        handle = await client.workflow.start('exchangeRatesWorkflow', {
+        handle = await client.workflow.start('msgWorkflow', {
           taskQueue,
-          workflowId: 'exchange-rates',
+          workflowId: 'my-msg-list',
         });
         console.log('Started new exchange rates workflow');
       } catch (err) {
         if (err instanceof WorkflowExecutionAlreadyStartedError) {
           console.log('Reusing existing exchange rates workflow');
-          handle = client.workflow.getHandle('exchange-rates');
+          handle = client.workflow.getHandle('my-msg-list');
         } else {
           throw err;
         }

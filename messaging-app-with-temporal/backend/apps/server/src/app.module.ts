@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
+import { MsgModule } from './msg-app/msg.module';
 @Module({
-  imports: [ExchangeRatesModule],
+  imports: [MsgModule],
   controllers: [],
   providers: [],
 })

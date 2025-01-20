@@ -2,7 +2,7 @@ import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Runtime, DefaultLogger, Worker } from '@temporalio/worker';
 import { Client, WorkflowHandle } from '@temporalio/client';
 import { getExchangeRatesQuery } from '@app/shared';
-import { exchangeRatesWorkflow } from './workflows';
+import { msgWorkflow } from './workflows';
 import { setTimeout } from 'timers/promises';
 
 const taskQueue = 'test-exchange-rates';
@@ -46,7 +46,7 @@ describe('example workflow', function () {
       .catch(() => {});
 
     execute = async () => {
-      handle = await client.workflow.start(exchangeRatesWorkflow, {
+      handle = await client.workflow.start(msgWorkflow, {
         taskQueue,
         workflowExecutionTimeout: 10_000,
         workflowId: 'exchange-rates-workflow',

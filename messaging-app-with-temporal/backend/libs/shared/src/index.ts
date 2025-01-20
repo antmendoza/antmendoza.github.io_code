@@ -1,9 +1,10 @@
 import { defineQuery } from '@temporalio/workflow';
 
-export const taskQueue = 'nest-test';
+export const taskQueue = 'msg-taskqueue';
 
-export type ExchangeRates = { [key: string]: number };
+export type Message = {
+  sender: string;
+  content: string;
+};
 
-export const getExchangeRatesQuery = defineQuery<ExchangeRates | null>('getExchangeRates');
-
-export type exchangeRatesWorkflowType = () => Promise<void>;
+export const getMessagesQuery = defineQuery<Message[], null>('getMessagesQuery');

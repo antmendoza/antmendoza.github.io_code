@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExchangeRatesService } from './exchange-rates.service';
-import { exchangeRatesProviders } from './exchange-rates.providers';
+import { MsgService } from './msg.service';
+import { msgProviders } from './msg.providers';
 
 describe('ExchangeRatesService', () => {
   let app: TestingModule;
@@ -12,20 +12,20 @@ describe('ExchangeRatesService', () => {
     };
 
     app = await Test.createTestingModule({
-      providers: [...exchangeRatesProviders, ExchangeRatesService],
+      providers: [...msgProviders, MsgService],
     })
       .overrideProvider('CONNECTION')
       .useValue(null)
       .overrideProvider('WORKFLOW_CLIENT')
       .useValue(null)
-      .overrideProvider('EXCHANGE_RATES_WORKFLOW_HANDLE')
+      .overrideProvider('MSG_WORKFLOW_HANDLE')
       .useValue(handleMock)
       .compile();
   });
 
   describe('ExchangeRatesService', () => {
     it('should return exchange rates', async () => {
-      const exchangeRatesService = app.get(ExchangeRatesService);
+      const exchangeRatesService = app.get(MsgService);
 
       const rates = await exchangeRatesService.getExchangeRates();
 
