@@ -1,3 +1,10 @@
+//TODO
+- list of friends
+- start/open chat
+- send message
+- add reminder
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /><a>
 </p>
