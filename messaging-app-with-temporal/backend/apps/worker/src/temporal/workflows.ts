@@ -1,12 +1,33 @@
-import { setHandler, sleep, defineQuery } from '@temporalio/workflow';
+import { condition, setHandler, sleep } from '@temporalio/workflow';
 
-import { getMessagesQuery } from '../../../../libs/shared/src';
+import { addContact, getContactList, getChatList, startChatWithContact } from '../../../../libs/shared/src';
 
-export const getLanguages = defineQuery<string[]>('getLanguages');
+export async function userWorkflow(): Promise<void> {
+  const contacts = [];
+  const chats = [];
+  const pendingChats = [];
 
-export async function msgWorkflow(): Promise<void> {
-  const msgs = [{ sender: 'Alice', content: 'Hello, Bob!' }];
-  setHandler(getMessagesQuery, () => msgs);
+  setHandler(addContact, (contact: string) => {
+    contacts.push(contact);
+    return null;
+  });
+
+  setHandler(startChatWithContact, (contact: string) => {
+    contacts.push(contact);
+    pendingChats.push(contact);
+    return null;
+  });
+
+  setHandler(getContactList, () => contacts);
+  setHandler(getChatList, () => chats);
+
+  while (true) {
+    await condition(() => pendingChats.length > 0);
+    const pendingChat = pendingChats.pop();
+
+    chats.push(pendingChat);
+  }
+
   console.log('msgWorkflow started');
-  await sleep(1000);
+  await sleep(10000);
 }

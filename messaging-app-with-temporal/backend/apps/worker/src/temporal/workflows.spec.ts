@@ -1,9 +1,8 @@
 import { TestWorkflowEnvironment } from '@temporalio/testing';
-import { Runtime, DefaultLogger, Worker } from '@temporalio/worker';
+import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { Client, WorkflowHandle } from '@temporalio/client';
-import { getMessagesQuery } from '@app/shared';
-import { msgWorkflow } from './workflows';
-import { setTimeout } from 'timers/promises';
+import { addContact, getChatList, getContactList, startChatWithContact } from '@app/shared';
+import { userWorkflow } from './workflows';
 
 const taskQueue = 'test-msgs';
 
@@ -40,7 +39,7 @@ describe('example workflow', function () {
       .catch(() => {});
 
     execute = async () => {
-      handle = await client.workflow.start(msgWorkflow, {
+      handle = await client.workflow.start(userWorkflow, {
         taskQueue,
         workflowExecutionTimeout: 10_000,
         workflowId: 'msg-workflow',
@@ -59,11 +58,25 @@ describe('example workflow', function () {
     await handle.terminate();
   });
 
-  it('allows querying the list of messages', async function () {
+  it('get list of contacts', async function () {
     const handle = await execute();
-    // This generally takes less than one second, but allow up to 5 seconds for slow CI environments
-    await setTimeout(5000);
-    const result = await handle.query(getMessagesQuery);
-    expect(result).toEqual([]);
+    expect((await handle.query(getContactList)).length).toEqual(0);
+
+    await handle.executeUpdate(addContact, { args: ['jose'] });
+    expect((await handle.query(getContactList)).length).toEqual(1);
+  });
+
+  it('get list of chats', async function () {
+    const handle = await execute();
+    expect((await handle.query(getChatList)).length).toEqual(0);
+
+    await handle.executeUpdate(addContact, { args: ['jose'] });
+    expect((await handle.query(getContactList)).length).toEqual(1);
+
+    await handle.executeUpdate(startChatWithContact, { args: ['jose'] });
+    expect((await handle.query(getChatList)).length).toEqual(1);
+
+
+
   });
 });
