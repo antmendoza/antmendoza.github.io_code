@@ -1,6 +1,6 @@
-import { condition, setHandler, sleep } from '@temporalio/workflow';
+import { condition, ParentClosePolicy, setHandler, sleep, startChild, workflowInfo } from '@temporalio/workflow';
 
-import { addContact, getContactList, getChatList, startChatWithContact } from '../../../../libs/shared/src';
+import { addContact, getChatList, getContactList, startChatWithContact } from '../../../../libs/shared/src';
 
 export async function userWorkflow(): Promise<void> {
   const contacts = [];
@@ -13,8 +13,9 @@ export async function userWorkflow(): Promise<void> {
   });
 
   setHandler(startChatWithContact, (contact: string) => {
-    contacts.push(contact);
     pendingChats.push(contact);
+
+    condition(() => chats.indexOf(contact) > 0);
     return null;
   });
 
@@ -25,9 +26,20 @@ export async function userWorkflow(): Promise<void> {
     await condition(() => pendingChats.length > 0);
     const pendingChat = pendingChats.pop();
 
+    await startChild(chatWorkflow, {
+      workflowId: `chat-with-${pendingChat}`,
+      parentClosePolicy: ParentClosePolicy.ABANDON,
+    });
+
     chats.push(pendingChat);
   }
 
   console.log('msgWorkflow started');
+  await sleep(10000);
+}
+
+export async function chatWorkflow(): Promise<void> {
+  console.log(`chatWorkflow started: ${workflowInfo().workflowId}`);
+
   await sleep(10000);
 }

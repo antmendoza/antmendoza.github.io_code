@@ -1,6 +1,6 @@
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
-import { Client, WorkflowHandle } from '@temporalio/client';
+import { Client, WorkflowHandle, WorkflowExecutionStatusName } from '@temporalio/client';
 import { addContact, getChatList, getContactList, startChatWithContact } from '@app/shared';
 import { userWorkflow } from './workflows';
 
@@ -67,6 +67,8 @@ describe('example workflow', function () {
   });
 
   it('get list of chats', async function () {
+    client = env.client;
+
     const handle = await execute();
     expect((await handle.query(getChatList)).length).toEqual(0);
 
@@ -76,7 +78,8 @@ describe('example workflow', function () {
     await handle.executeUpdate(startChatWithContact, { args: ['jose'] });
     expect((await handle.query(getChatList)).length).toEqual(1);
 
-
-
+    const chatWithJose = client.workflow.getHandle('chat-with-jose');
+    const chatWithJoseStatus = await chatWithJose.describe().then((w) => w.status.name);
+    expect(chatWithJoseStatus).toEqual('RUNNING');
   });
 });
