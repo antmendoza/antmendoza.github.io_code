@@ -1,6 +1,20 @@
-import { condition, ParentClosePolicy, setHandler, sleep, startChild, workflowInfo } from '@temporalio/workflow';
+import {
+  condition,
+  getExternalWorkflowHandle,
+  ParentClosePolicy,
+  setHandler,
+  sleep,
+  startChild,
+  workflowInfo,
+} from '@temporalio/workflow';
 
-import { addContact, getChatList, getContactList, startChatWithContact } from '../../../../libs/shared/src';
+import {
+  addContact,
+  getChatList,
+  getContactList,
+  joinChatWithContact,
+  startChatWithContact,
+} from '../../../../libs/shared/src';
 
 export async function userWorkflow(): Promise<void> {
   const contacts = [];
@@ -19,6 +33,12 @@ export async function userWorkflow(): Promise<void> {
     return null;
   });
 
+  setHandler(joinChatWithContact, (contact: string) => {
+    chats.push(contact);
+    console.log(`Joined chat with ${contact}`);
+    return null;
+  });
+
   setHandler(getContactList, () => contacts);
   setHandler(getChatList, () => chats);
 
@@ -26,12 +46,16 @@ export async function userWorkflow(): Promise<void> {
     await condition(() => pendingChats.length > 0);
     const pendingChat = pendingChats.pop();
 
+    const chatWithWorkflowId = `chat-with-${pendingChat}`;
     await startChild(chatWorkflow, {
-      workflowId: `chat-with-${pendingChat}`,
+      workflowId: chatWithWorkflowId,
       parentClosePolicy: ParentClosePolicy.ABANDON,
     });
 
+    await getExternalWorkflowHandle(chatWithWorkflowId).signal(joinChatWithContact, pendingChat);
+
     chats.push(pendingChat);
+
   }
 
   console.log('msgWorkflow started');
