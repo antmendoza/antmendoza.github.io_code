@@ -43,6 +43,7 @@ describe('example workflow', function () {
         taskQueue,
         workflowExecutionTimeout: 10_000,
         workflowId: 'user-workflow-[' + user + ']',
+        args: [{ userId: user }],
       });
       return handle;
     };
@@ -77,7 +78,7 @@ describe('example workflow', function () {
     expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(0);
 
     await userWorkflowJuanHandler.executeUpdate(addContact, { args: ['jose'] });
-    expect((await userWorkflowJuanHandler.query(getContactList)).length).toEqual(1);
+    expect((await userWorkflowJuanHandler.query(getContactList))).toEqual(['jose']);
 
     await userWorkflowJuanHandler.executeUpdate(startChatWithContact, { args: ['jose'] });
 
@@ -85,6 +86,8 @@ describe('example workflow', function () {
 
     expect(await userWorkflowJoseHandler.describe().then((w) => w.status.name)).toEqual('RUNNING');
 
-    expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(1);
+
+    expect((await userWorkflowJoseHandler.query(getChatList))).toEqual(["juan"]);
+
   });
 });

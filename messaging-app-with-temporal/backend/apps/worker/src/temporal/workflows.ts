@@ -13,10 +13,15 @@ import {
   getChatList,
   getContactList,
   joinChatWithContact,
-  startChatWithContact,
+  startChatWithContact, UserWorkflowRequest,
 } from '../../../../libs/shared/src';
 
-export async function userWorkflow(): Promise<void> {
+
+
+
+export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<void> {
+
+
   const contacts = [];
   const chats = [];
   const pendingChats = [];
@@ -33,7 +38,6 @@ export async function userWorkflow(): Promise<void> {
   });
 
   setHandler(joinChatWithContact, (contact: string) => {
-    console.log(`Joining chat with ${contact}`);
     chats.push(contact);
     console.log(`Joined chat with ${contact}`);
     return null;
@@ -55,7 +59,7 @@ export async function userWorkflow(): Promise<void> {
     });
 
     const workflowHandle = getExternalWorkflowHandle(`user-workflow-[${pendingChat}]`);
-    await workflowHandle.signal(joinChatWithContact, pendingChat);
+    await workflowHandle.signal(joinChatWithContact, userRequest.userId);
 
     chats.push(pendingChat);
   }
