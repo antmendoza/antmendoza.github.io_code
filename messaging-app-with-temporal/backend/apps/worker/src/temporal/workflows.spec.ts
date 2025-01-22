@@ -3,7 +3,6 @@ import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { Client, WorkflowHandle } from '@temporalio/client';
 import { addContact, getChatList, getContactList, startChatWithContact } from '@app/shared';
 import { userWorkflow } from './workflows';
-import { setTimeout } from 'timers/promises';
 
 const taskQueue = 'test-msgs';
 
@@ -81,16 +80,10 @@ describe('example workflow', function () {
     expect((await userWorkflowJuanHandler.query(getContactList)).length).toEqual(1);
 
     await userWorkflowJuanHandler.executeUpdate(startChatWithContact, { args: ['jose'] });
+
     expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(1);
 
-    expect(
-      await client.workflow
-        .getHandle('chat-with-jose')
-        .describe()
-        .then((w) => w.status.name),
-    ).toEqual('RUNNING');
-
-    await setTimeout(5000);
+    expect(await userWorkflowJoseHandler.describe().then((w) => w.status.name)).toEqual('RUNNING');
 
     expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(1);
   });

@@ -26,21 +26,23 @@ export async function userWorkflow(): Promise<void> {
     return null;
   });
 
-  setHandler(startChatWithContact, (contact: string) => {
+  setHandler(startChatWithContact, async (contact: string) => {
     pendingChats.push(contact);
-
-    condition(() => chats.indexOf(contact) > 0);
+    await condition(() => chats.indexOf(contact) >= 0);
     return null;
   });
 
   setHandler(joinChatWithContact, (contact: string) => {
+    console.log(`Joining chat with ${contact}`);
     chats.push(contact);
     console.log(`Joined chat with ${contact}`);
     return null;
   });
 
   setHandler(getContactList, () => contacts);
-  setHandler(getChatList, () => chats);
+  setHandler(getChatList, () => {
+    return chats;
+  });
 
   while (true) {
     await condition(() => pendingChats.length > 0);
@@ -52,13 +54,12 @@ export async function userWorkflow(): Promise<void> {
       parentClosePolicy: ParentClosePolicy.ABANDON,
     });
 
-    await getExternalWorkflowHandle(chatWithWorkflowId).signal(joinChatWithContact, pendingChat);
+    const workflowHandle = getExternalWorkflowHandle(`user-workflow-[${pendingChat}]`);
+    await workflowHandle.signal(joinChatWithContact, pendingChat);
 
     chats.push(pendingChat);
-
   }
 
-  console.log('msgWorkflow started');
   await sleep(10000);
 }
 
