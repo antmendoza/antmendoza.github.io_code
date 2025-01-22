@@ -78,7 +78,7 @@ describe('example workflow', function () {
     expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(0);
 
     await userWorkflowJuanHandler.executeUpdate(addContact, { args: ['jose'] });
-    expect((await userWorkflowJuanHandler.query(getContactList))).toEqual(['jose']);
+    expect(await userWorkflowJuanHandler.query(getContactList)).toEqual(['jose']);
 
     await userWorkflowJuanHandler.executeUpdate(startChatWithContact, { args: ['jose'] });
 
@@ -86,8 +86,6 @@ describe('example workflow', function () {
 
     expect(await userWorkflowJoseHandler.describe().then((w) => w.status.name)).toEqual('RUNNING');
 
-
-    expect((await userWorkflowJoseHandler.query(getChatList))).toEqual(["juan"]);
-
+    expect(await userWorkflowJoseHandler.query(getChatList)).toEqual(['juan']);
   });
 });
