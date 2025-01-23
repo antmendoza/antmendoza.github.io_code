@@ -1,7 +1,7 @@
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { Client, WorkflowHandle } from '@temporalio/client';
-import { addContact, getChatList, getContactList, startChatWithContact } from '@app/shared';
+import { addContact, getChatList, getContactList, getDescription, startChatWithContact } from '@app/shared';
 import { userWorkflow } from './workflows';
 
 const taskQueue = 'test-msgs';
@@ -32,11 +32,6 @@ describe('example workflow', function () {
 
   beforeEach(async () => {
     client = env.client;
-    /* eslint-disable @typescript-eslint/no-empty-function */
-    await client.workflow
-      .getHandle('msg-workflow')
-      .terminate()
-      .catch(() => {});
 
     startUserWorkflow = async (user: string) => {
       handle = await client.workflow.start(userWorkflow, {
@@ -56,21 +51,47 @@ describe('example workflow', function () {
   });
 
   afterEach(async () => {
-    await handle.terminate();
+    //await handle.terminate();
   });
 
   /////// userWorkflow ///////
   it('get list of contacts', async function () {
-    const userWorkflowJuanHandler = await startUserWorkflow('juan');
+    const user1 = 'juan' + Math.random();
+    const user2 = 'jose' + Math.random();
+
+    const userWorkflowJuanHandler = await startUserWorkflow(user1);
     expect((await userWorkflowJuanHandler.query(getContactList)).length).toEqual(0);
 
-    await userWorkflowJuanHandler.executeUpdate(addContact, { args: ['jose'] });
+    await userWorkflowJuanHandler.executeUpdate(addContact, { args: [user2] });
     expect((await userWorkflowJuanHandler.query(getContactList)).length).toEqual(1);
   });
 
   it('start chat', async function () {
     client = env.client;
 
+    const user1 = 'juan' + Math.random();
+    const user2 = 'jose' + Math.random();
+
+
+    const userWorkflowJoseHandler = await startUserWorkflow(user1);
+    const userWorkflowJuanHandler = await startUserWorkflow(user2);
+
+    expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(0);
+    expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(0);
+
+    await userWorkflowJuanHandler.executeUpdate(addContact, { args: [user2] });
+    expect(await userWorkflowJuanHandler.query(getContactList)).toEqual([user2]);
+
+    await userWorkflowJuanHandler.executeUpdate(startChatWithContact, { args: [user2] });
+
+    expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(1);
+
+    expect((await userWorkflowJoseHandler.describe()).status.name).toEqual('RUNNING');
+
+    expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(1);
+  });
+
+  it('send message to chat', async function () {
     const userWorkflowJoseHandler = await startUserWorkflow('jose');
     const userWorkflowJuanHandler = await startUserWorkflow('juan');
 
@@ -84,8 +105,22 @@ describe('example workflow', function () {
 
     expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(1);
 
-    expect(await userWorkflowJoseHandler.describe().then((w) => w.status.name)).toEqual('RUNNING');
+    expect((await userWorkflowJoseHandler.describe()).status.name).toEqual('RUNNING');
 
-    expect(await userWorkflowJoseHandler.query(getChatList)).toEqual(['juan']);
+    const chatInfo = await userWorkflowJoseHandler.query(getChatList);
+    expect(chatInfo.length).toEqual(1);
+
+    const chatDescription = await client.workflow.getHandle(chatInfo[0].chatId).query(getDescription);
+
+    expect(chatDescription.users.indexOf('juan') >= 0).toBeTruthy();
+    expect(chatDescription.users.indexOf('jose') >= 0).toBeTruthy();
+
+    //jose send message
+
+    //juan getNotification
+
+    //juan read message == ack notification
+
+    // const msg_workflow = client.workflow.getHandle("msg-workflow");
   });
 });

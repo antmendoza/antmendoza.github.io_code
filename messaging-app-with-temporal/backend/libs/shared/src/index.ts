@@ -7,14 +7,23 @@ export type Message = {
   content: string;
 };
 
-
+export type ChatInfo = {
+  chatId: string;
+};
 
 export type UserWorkflowRequest = {
   userId: string;
 };
 
-export const getChatList = defineQuery<Message[], null>('getChatList');
+export type ChatWorkflowRequest = {
+  users: string[];
+};
+
+export const getChatList = defineQuery<ChatInfo[], null>('getChatList');
 export const getContactList = defineQuery<string[], null>('getContactList');
 export const addContact = defineUpdate<string, null>('addContact');
 export const startChatWithContact = defineUpdate<string, null>('startChatWithContact');
-export const joinChatWithContact = defineSignal<[string]>('joinChatWithContact');
+export const joinChatWithContact = defineSignal<[ChatInfo]>('joinChatWithContact');
+
+export const getDescription = defineQuery<ChatWorkflowRequest, null>('getDescription');
+export const getDescriptionForUser = defineQuery<string, [string]>('getDescriptionForUser');
