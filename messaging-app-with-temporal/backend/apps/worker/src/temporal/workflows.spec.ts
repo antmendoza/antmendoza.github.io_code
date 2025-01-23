@@ -72,9 +72,8 @@ describe('example workflow', function () {
     const user1 = 'juan' + Math.random();
     const user2 = 'jose' + Math.random();
 
-
-    const userWorkflowJoseHandler = await startUserWorkflow(user1);
-    const userWorkflowJuanHandler = await startUserWorkflow(user2);
+    const userWorkflowJuanHandler = await startUserWorkflow(user1);
+    const userWorkflowJoseHandler = await startUserWorkflow(user2);
 
     expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(0);
     expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(0);
@@ -92,16 +91,19 @@ describe('example workflow', function () {
   });
 
   it('send message to chat', async function () {
-    const userWorkflowJoseHandler = await startUserWorkflow('jose');
-    const userWorkflowJuanHandler = await startUserWorkflow('juan');
+    const user1 = 'juan' + Math.random();
+    const user2 = 'jose' + Math.random();
+
+    const userWorkflowJuanHandler = await startUserWorkflow(user1);
+    const userWorkflowJoseHandler = await startUserWorkflow(user2);
 
     expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(0);
     expect((await userWorkflowJoseHandler.query(getChatList)).length).toEqual(0);
 
-    await userWorkflowJuanHandler.executeUpdate(addContact, { args: ['jose'] });
-    expect(await userWorkflowJuanHandler.query(getContactList)).toEqual(['jose']);
+    await userWorkflowJuanHandler.executeUpdate(addContact, { args: [user2] });
+    expect(await userWorkflowJuanHandler.query(getContactList)).toEqual([user2]);
 
-    await userWorkflowJuanHandler.executeUpdate(startChatWithContact, { args: ['jose'] });
+    await userWorkflowJuanHandler.executeUpdate(startChatWithContact, { args: [user2] });
 
     expect((await userWorkflowJuanHandler.query(getChatList)).length).toEqual(1);
 
@@ -112,10 +114,12 @@ describe('example workflow', function () {
 
     const chatDescription = await client.workflow.getHandle(chatInfo[0].chatId).query(getDescription);
 
-    expect(chatDescription.users.indexOf('juan') >= 0).toBeTruthy();
-    expect(chatDescription.users.indexOf('jose') >= 0).toBeTruthy();
+    expect(chatDescription.users.indexOf(user1) >= 0).toBeTruthy();
+    expect(chatDescription.users.indexOf(user2) >= 0).toBeTruthy();
 
     //jose send message
+
+
 
     //juan getNotification
 
