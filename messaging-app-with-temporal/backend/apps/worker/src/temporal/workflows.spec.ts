@@ -1,8 +1,17 @@
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
-import { Client, WorkflowHandle } from '@temporalio/client';
-import { addContact, getChatList, getContactList, getDescription, startChatWithContact } from '@app/shared';
-import { userWorkflow } from './workflows';
+import { Client, Workflow, WorkflowHandle } from '@temporalio/client';
+import {
+  addContact,
+  getChatList,
+  getContactList,
+  getDescription,
+  getNotifications,
+  sendMessage,
+  startChatWithContact,
+} from '@app/shared';
+import { createUserWorkflowIdFromUserId, userWorkflow } from './workflows';
+import { setTimeout } from 'timers/promises';
 
 const taskQueue = 'test-msgs';
 
@@ -37,7 +46,7 @@ describe('example workflow', function () {
       handle = await client.workflow.start(userWorkflow, {
         taskQueue,
         workflowExecutionTimeout: 10_000,
-        workflowId: 'user-workflow-[' + user + ']',
+        workflowId: createUserWorkflowIdFromUserId(user),
         args: [{ userId: user }],
       });
       return handle;
@@ -112,19 +121,44 @@ describe('example workflow', function () {
     const chatInfo = await userWorkflowJoseHandler.query(getChatList);
     expect(chatInfo.length).toEqual(1);
 
-    const chatDescription = await client.workflow.getHandle(chatInfo[0].chatId).query(getDescription);
+    const chatId = chatInfo[0].chatId;
+    const chatHandler = client.workflow.getHandle(chatId);
+
+    const chatDescription = await chatHandler.query(getDescription);
 
     expect(chatDescription.users.indexOf(user1) >= 0).toBeTruthy();
     expect(chatDescription.users.indexOf(user2) >= 0).toBeTruthy();
 
-    //jose send message
+    //user2 send message
+    await chatHandler.signal(sendMessage, {
+      content: `Hello, how are you?`,
+      senderUserId: user2,
+    });
 
-
+    while ((await getNotificationsForWorkflow(userWorkflowJuanHandler)).length == 0) {
+      await setTimeout(100);
+    }
 
     //juan getNotification
+    expect((await getNotificationsForWorkflow(userWorkflowJuanHandler)).length).toEqual(1);
+
+    expect((await getNotificationsForWorkflow(userWorkflowJuanHandler))[0].chatId).toEqual(chatId);
+    expect((await getNotificationsForWorkflow(userWorkflowJuanHandler))[0].pendingMessages).toEqual(1);
+
+    await chatHandler.signal(sendMessage, { content: `👋`, senderUserId: user2 });
+    while ((await getNotificationsForWorkflow(userWorkflowJuanHandler)).length == 1) {
+      await setTimeout(100);
+    }
+    expect((await getNotificationsForWorkflow(userWorkflowJuanHandler)).length).toEqual(2);
+    expect((await getNotificationsForWorkflow(userWorkflowJuanHandler))[0].chatId).toEqual(chatId);
+    expect((await getNotificationsForWorkflow(userWorkflowJuanHandler))[0].pendingMessages).toEqual(2);
 
     //juan read message == ack notification
 
     // const msg_workflow = client.workflow.getHandle("msg-workflow");
   });
 });
+
+async function getNotificationsForWorkflow(userWorkflowJuanHandler: WorkflowHandle<Workflow>) {
+  return await userWorkflowJuanHandler.query(getNotifications);
+}
