@@ -29,13 +29,16 @@ export type ChatWorkflowRequest = {
 };
 
 export type SendMessageRequest = {
+  id: string;
   content: string;
   senderUserId: string;
 };
 
 export type Message = {
+  id: string;
   sender: string;
   content: string;
+  processed: boolean;
 };
 
 export type NotifyNewMessageRequest = {

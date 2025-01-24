@@ -22,6 +22,7 @@ import {
   getNotifications,
   joinChatWithContact,
   JoinChatWithContactRequest,
+  Message,
   notifyNewMessage,
   NotifyNewMessageRequest,
   sendMessage,
@@ -30,16 +31,24 @@ import {
   UserSessionRequest,
 } from '../../../../libs/shared/src';
 
+/**
+ * User workflow, responsible for managing user contacts and chats for a given user
+ * @param session
+ */
 export async function userWorkflow(session: UserSessionRequest): Promise<void> {
   const contacts = [];
-  let chats: ChatInfo[] = [];
+  const chats: ChatInfo[] = [];
 
   setHandler(addContact, (contact: string) => {
-    contacts.push(contact);
+    if (!contacts.includes(contact)) {
+      contacts.push(contact);
+    }
     return null;
   });
 
   setHandler(startChatWithContact, async (userId: string) => {
+    //TODO deduplicate requests
+
     const chatWithWorkflowId = `chat-${uuid4()}`;
 
     const chatInfo = {
@@ -51,6 +60,7 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
 
     chats.push(chatInfo);
 
+    //TODO race condition, review
     await sleep(1000);
 
     await condition(() => chatInfo.started);
@@ -59,6 +69,8 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
   });
 
   setHandler(joinChatWithContact, (request: JoinChatWithContactRequest) => {
+    //TODO deduplicate requests
+
     chats.push({
       chatId: request.chatId,
       pendingNotifications: 0,
@@ -137,11 +149,14 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
   }
 }
 
+/**
+ * Chat workflow, hold the chat messages and notify users when a new message is received
+ * @param chatRequest
+ */
 export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<void> {
   console.log(`chatWorkflow started: ${workflowInfo().workflowId} with input ${JSON.stringify(chatRequest)}`);
 
-  const pendingMessages: SendMessageRequest[] = [];
-  const messagesHistory: SendMessageRequest[] = [];
+  const messages: Message[] = [];
 
   setHandler(getDescription, () => {
     return chatRequest;
@@ -155,21 +170,28 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
     return `chat with ${usersInChat}`;
   });
 
-  setHandler(sendMessage, (message: SendMessageRequest) => {
-    pendingMessages.push(message);
+  setHandler(sendMessage, (request: SendMessageRequest) => {
+    if (!messages.some((m) => m.id == request.id)) {
+      messages.push({
+        id: request.id,
+        sender: request.senderUserId,
+        content: request.content,
+        processed: false,
+      });
+    }
   });
 
   while (true) {
     //TODO Continue as new
-    await condition(() => pendingMessages.length > 0);
+    await condition(() => messages.some((m) => !m.processed));
 
-    const message = pendingMessages.pop();
+    const message = messages.find((m) => !m.processed);
 
     console.log('processing message   ', message);
 
     //Notify users in the chat
     for (const user of chatRequest.users) {
-      if (user != message.senderUserId) {
+      if (user != message.sender) {
         const args = {
           chatId: workflowInfo().workflowId,
         };
@@ -180,7 +202,12 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
       }
     }
 
-    messagesHistory.push(message);
+    messages.map((m) => {
+      if (m.id == message.id) {
+        m.processed = true;
+      }
+      return m;
+    });
   }
 }
 

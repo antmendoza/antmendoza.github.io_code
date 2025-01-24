@@ -132,6 +132,7 @@ describe('example workflow', function () {
 
     //user2 send message
     await chatHandler.signal(sendMessage, {
+      id: Math.random().toString(),
       content: `Hello, how are you?`,
       senderUserId: user2,
     });
@@ -144,7 +145,7 @@ describe('example workflow', function () {
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].chatId).toEqual(chatId);
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(1);
 
-    await chatHandler.signal(sendMessage, { content: `👋`, senderUserId: user2 });
+    await chatHandler.signal(sendMessage, { id: Math.random().toString(), content: `👋`, senderUserId: user2 });
     while ((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications == 1) {
       await setTimeout(50);
     }
@@ -180,6 +181,7 @@ describe('example workflow', function () {
 
     //user2 send message
     await chatHandler_1.signal(sendMessage, {
+      id: Math.random().toString(),
       content: `Hello, how are you?`,
       senderUserId: user2,
     });
@@ -188,6 +190,7 @@ describe('example workflow', function () {
 
     //user3 send message
     await chatHandler_2.signal(sendMessage, {
+      id: Math.random().toString(),
       content: `Hello, how are you?`,
       senderUserId: user3,
     });
