@@ -5,6 +5,8 @@ export const taskQueue = 'msg-taskqueue';
 export type ChatInfo = {
   chatId: string;
   pendingNotifications: number;
+  started: boolean;
+  userId: string;
 };
 
 export type GetNotificationsResponse = {
@@ -12,7 +14,12 @@ export type GetNotificationsResponse = {
   pendingNotifications: number;
 };
 
-export type UserWorkflowRequest = {
+export type JoinChatWithContactRequest = {
+  chatId: string;
+  userId: string;
+};
+
+export type UserSessionRequest = {
   userId: string;
 };
 
@@ -31,11 +38,11 @@ export type Message = {
   content: string;
 };
 
-export type NewMessageInChatRequest = {
+export type NotifyNewMessageRequest = {
   chatId: string;
 };
 
-export type AckNotificationsRequest = {
+export type AckNotificationsInChatRequest = {
   chatId: string;
 };
 
@@ -43,10 +50,10 @@ export const getChatList = defineQuery<ChatInfo[], null>('getChatList');
 export const getContactList = defineQuery<string[], null>('getContactList');
 export const addContact = defineUpdate<string, null>('addContact');
 export const startChatWithContact = defineUpdate<string, null>('startChatWithContact');
-export const joinChatWithContact = defineSignal<[ChatInfo]>('joinChatWithContact');
+export const joinChatWithContact = defineSignal<[JoinChatWithContactRequest]>('joinChatWithContact');
 export const getNotifications = defineQuery<GetNotificationsResponse[], null>('getNotifications');
-export const newMessageInChat = defineSignal<[NewMessageInChatRequest]>('newMessageInChat');
-export const ackNotifications = defineUpdate<[AckNotificationsRequest], null>('ackNotifications');
+export const notifyNewMessage = defineSignal<[NotifyNewMessageRequest]>('newMessageInChat');
+export const ackNotificationsInChat = defineUpdate<[AckNotificationsInChatRequest], null>('ackNotifications');
 
 export const getDescription = defineQuery<ChatWorkflowRequest, null>('getDescription');
 export const getDescriptionForUser = defineQuery<string, [string]>('getDescriptionForUser');

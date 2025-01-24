@@ -2,7 +2,7 @@ import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { Client, Workflow, WorkflowHandle } from '@temporalio/client';
 import {
-  ackNotifications,
+  ackNotificationsInChat,
   addContact,
   getChatList,
   getContactList,
@@ -152,7 +152,7 @@ describe('example workflow', function () {
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].chatId).toEqual(chatId);
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(2);
 
-    await userWorkflowUser1Handler.executeUpdate(ackNotifications, { args: [{ chatId: chatId }] });
+    await userWorkflowUser1Handler.executeUpdate(ackNotificationsInChat, { args: [{ chatId: chatId }] });
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(0);
   });
 
@@ -200,7 +200,7 @@ describe('example workflow', function () {
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(1);
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[1].pendingNotifications).toEqual(1);
 
-    await userWorkflowUser1Handler.executeUpdate(ackNotifications, {
+    await userWorkflowUser1Handler.executeUpdate(ackNotificationsInChat, {
       args: [{ chatId: (await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].chatId }],
     });
 

@@ -10,8 +10,8 @@ import {
 } from '@temporalio/workflow';
 
 import {
-  ackNotifications,
-  AckNotificationsRequest,
+  ackNotificationsInChat,
+  AckNotificationsInChatRequest,
   addContact,
   ChatInfo,
   ChatWorkflowRequest,
@@ -21,25 +21,18 @@ import {
   getDescriptionForUser,
   getNotifications,
   joinChatWithContact,
-  newMessageInChat,
-  NewMessageInChatRequest,
+  JoinChatWithContactRequest,
+  notifyNewMessage,
+  NotifyNewMessageRequest,
   sendMessage,
   SendMessageRequest,
   startChatWithContact,
-  UserWorkflowRequest,
+  UserSessionRequest,
 } from '../../../../libs/shared/src';
 
-export type PendingChat = {
-  chatId: string;
-  userId: string;
-};
-
-export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<void> {
+export async function userWorkflow(session: UserSessionRequest): Promise<void> {
   const contacts = [];
   let chats: ChatInfo[] = [];
-
-  //TODO
-  const pendingChats: PendingChat[] = [];
 
   setHandler(addContact, (contact: string) => {
     contacts.push(contact);
@@ -47,45 +40,54 @@ export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<vo
   });
 
   setHandler(startChatWithContact, async (userId: string) => {
-    const chatId = `chatId-${uuid4()}`;
-    pendingChats.push({ chatId: chatId, userId: userId });
+    const chatWithWorkflowId = `chat-${uuid4()}`;
+
+    const chatInfo = {
+      chatId: chatWithWorkflowId,
+      pendingNotifications: 0,
+      started: false,
+      userId: userId,
+    };
+
+    chats.push(chatInfo);
 
     await sleep(1000);
 
+    await condition(() => chatInfo.started);
+
     return null;
   });
 
-  setHandler(joinChatWithContact, (chatInfo: ChatInfo) => {
-    chats.push(chatInfo);
-    console.log(`Joined chat with ${JSON.stringify(chatInfo)}`);
+  setHandler(joinChatWithContact, (request: JoinChatWithContactRequest) => {
+    chats.push({
+      chatId: request.chatId,
+      pendingNotifications: 0,
+      started: true,
+      userId: request.userId,
+    });
+    console.log(`Joined chat with ${JSON.stringify(request)}`);
     return null;
   });
 
-  setHandler(newMessageInChat, (request: NewMessageInChatRequest) => {
-    console.log('newMessageInChatRequest', JSON.stringify(request));
+  setHandler(notifyNewMessage, (request: NotifyNewMessageRequest) => {
+    console.log('notifyNewMessage', request);
 
-    const updatedNotifications = chats.map((notification) => {
+    chats.map((notification) => {
       if (notification.chatId == request.chatId) {
         notification.pendingNotifications = notification.pendingNotifications + 1;
       }
-
       return notification;
     });
-
-    console.log('updatedNotifications', updatedNotifications);
-    chats = updatedNotifications;
   });
 
-  setHandler(ackNotifications, (request: AckNotificationsRequest) => {
-    const updatedNotifications = chats.map((notification) => {
+  setHandler(ackNotificationsInChat, (request: AckNotificationsInChatRequest) => {
+    chats.map((notification) => {
       if (notification.chatId == request.chatId) {
         notification.pendingNotifications = 0;
       }
       return notification;
     });
 
-    console.log('updatedNotifications', updatedNotifications);
-    chats = updatedNotifications;
     return null;
   });
 
@@ -100,22 +102,19 @@ export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<vo
   });
 
   while (true) {
-    await condition(() => pendingChats.length > 0);
+    await condition(() => chats.some((c) => !c.started));
 
-    //TODO add continue as new
+    const pendingChat = chats.find((c) => !c.started);
 
-    const pendingChat = pendingChats.pop();
-
+    console.log('processing chat', pendingChat);
     const targetWorkflowId = createUserWorkflowIdFromUserId(pendingChat.userId);
 
-    //TODO review workflow id
-    const chatWithWorkflowId = `chat-with-${uuid4()}`;
-    const chatWorkflowHandler = await startChild(chatWorkflow, {
-      workflowId: chatWithWorkflowId,
+    await startChild(chatWorkflow, {
+      workflowId: pendingChat.chatId,
       parentClosePolicy: ParentClosePolicy.ABANDON,
       args: [
         {
-          users: [userRequest.userId, pendingChat.userId],
+          users: [session.userId, pendingChat.userId],
           usersWorkflowId: [workflowInfo().workflowId, targetWorkflowId],
         },
       ],
@@ -123,14 +122,18 @@ export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<vo
 
     const workflowHandle = getExternalWorkflowHandle(targetWorkflowId);
 
-    const chatInfo = {
-      chatId: chatWorkflowHandler.workflowId,
-      pendingNotifications: 0,
-    };
+    await workflowHandle.signal(joinChatWithContact, {
+      chatId: pendingChat.chatId,
+      userId: session.userId,
+    });
 
-    await workflowHandle.signal(joinChatWithContact, chatInfo);
-
-    chats.push(chatInfo);
+    // update c.started to true
+    chats.map((c) => {
+      if (c.chatId == pendingChat.chatId) {
+        c.started = true;
+      }
+      return c;
+    });
   }
 }
 
@@ -173,7 +176,7 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
         const workflowId = createUserWorkflowIdFromUserId(user);
         console.log('Signaling workflow   ', workflowId);
 
-        await getExternalWorkflowHandle(workflowId).signal(newMessageInChat, args);
+        await getExternalWorkflowHandle(workflowId).signal(notifyNewMessage, args);
       }
     }
 
