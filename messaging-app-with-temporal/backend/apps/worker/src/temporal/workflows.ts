@@ -10,9 +10,10 @@ import {
 } from '@temporalio/workflow';
 
 import {
+  ackNotifications,
+  AckNotificationsRequest,
   addContact,
   ChatInfo,
-  ChatNotification,
   ChatWorkflowRequest,
   getChatList,
   getContactList,
@@ -33,14 +34,12 @@ export type PendingChat = {
   userId: string;
 };
 
-
 export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<void> {
   const contacts = [];
-  const chats: ChatInfo[] = [];
+  let chats: ChatInfo[] = [];
 
+  //TODO
   const pendingChats: PendingChat[] = [];
-
-  const notifications: ChatNotification[] = [];
 
   setHandler(addContact, (contact: string) => {
     contacts.push(contact);
@@ -48,12 +47,10 @@ export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<vo
   });
 
   setHandler(startChatWithContact, async (userId: string) => {
-    pendingChats.push({ chatId: `chatId-${uuid4()}`, userId: userId });
+    const chatId = `chatId-${uuid4()}`;
+    pendingChats.push({ chatId: chatId, userId: userId });
 
-    await condition(
-      () => chats.length > 0,
-      //        chats.indexOf(contact) >= 0
-    );
+    await sleep(1000);
 
     return null;
   });
@@ -66,25 +63,38 @@ export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<vo
 
   setHandler(newMessageInChat, (request: NewMessageInChatRequest) => {
     console.log('newMessageInChatRequest', JSON.stringify(request));
-    const chatId = request.chatId;
 
-    //TODO improve
-    let notification = notifications.filter((n) => n.chatId == chatId)[0];
+    const updatedNotifications = chats.map((notification) => {
+      if (notification.chatId == request.chatId) {
+        notification.pendingNotifications = notification.pendingNotifications + 1;
+      }
 
-    if (notification) {
-      notification.pendingMessages = notification.pendingMessages + 1;
-    } else {
-      notification = {
-        chatId,
-        pendingMessages: 1,
-      };
-    }
+      return notification;
+    });
 
-    notifications.push(notification);
+    console.log('updatedNotifications', updatedNotifications);
+    chats = updatedNotifications;
+  });
+
+  setHandler(ackNotifications, (request: AckNotificationsRequest) => {
+    const updatedNotifications = chats.map((notification) => {
+      if (notification.chatId == request.chatId) {
+        notification.pendingNotifications = 0;
+      }
+      return notification;
+    });
+
+    console.log('updatedNotifications', updatedNotifications);
+    chats = updatedNotifications;
+    return null;
   });
 
   setHandler(getContactList, () => contacts);
-  setHandler(getNotifications, () => notifications);
+  setHandler(getNotifications, () =>
+    chats.map((c) => {
+      return { chatId: c.chatId, pendingNotifications: c.pendingNotifications };
+    }),
+  );
   setHandler(getChatList, () => {
     return chats;
   });
@@ -115,6 +125,7 @@ export async function userWorkflow(userRequest: UserWorkflowRequest): Promise<vo
 
     const chatInfo = {
       chatId: chatWorkflowHandler.workflowId,
+      pendingNotifications: 0,
     };
 
     await workflowHandle.signal(joinChatWithContact, chatInfo);
@@ -168,8 +179,6 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
 
     messagesHistory.push(message);
   }
-
-  await sleep(10000);
 }
 
 export function createUserWorkflowIdFromUserId(userId: string) {
