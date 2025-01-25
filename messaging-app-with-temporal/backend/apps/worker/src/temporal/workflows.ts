@@ -49,21 +49,14 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
     //TODO deduplicate requests
 
     const chatWithWorkflowId = `chat-${uuid4()}`;
-
     const chatInfo = {
       chatId: chatWithWorkflowId,
       pendingNotifications: 0,
       started: false,
       userId: userId,
     };
-
     chats.push(chatInfo);
-
-    //TODO race condition, review
-    //await sleep(1000);
-
     await condition(() => chatInfo.started);
-
     return null;
   });
 
@@ -114,7 +107,6 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
       .filter((c) => c);
   });
 
-
   setHandler(getChatList, () => {
     return chats;
   });
@@ -127,6 +119,7 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
     console.log('processing chat', pendingChat);
     const targetWorkflowId = createUserWorkflowIdFromUserId(pendingChat.userId);
 
+    //Start chat workflow with the user
     await startChild(chatWorkflow, {
       workflowId: pendingChat.chatId,
       parentClosePolicy: ParentClosePolicy.ABANDON,
@@ -138,14 +131,13 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
       ],
     });
 
+    //Notify the user workflow to join the chat
     const workflowHandle = getExternalWorkflowHandle(targetWorkflowId);
-
     await workflowHandle.signal(joinChatWithContact, {
       chatId: pendingChat.chatId,
       userId: session.userId,
     });
 
-    // update c.started to true
     chats.map((c) => {
       if (c.chatId == pendingChat.chatId) {
         c.started = true;
@@ -172,7 +164,6 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
     const usersInChat = chatRequest.users.filter((user) => {
       return user != userId;
     });
-
     return `chat with ${usersInChat}`;
   });
 
@@ -195,16 +186,15 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
 
     console.log('processing message   ', message);
 
-    //Notify users in the chat
+    //Notify users in the chat except the sender
     for (const user of chatRequest.users) {
       if (user != message.sender) {
-        const args = {
-          chatId: workflowInfo().workflowId,
-        };
         const workflowId = createUserWorkflowIdFromUserId(user);
-        console.log('Signaling workflow   ', workflowId);
+        console.log('Sending notification [notifyNewMessage] to', workflowId);
 
-        await getExternalWorkflowHandle(workflowId).signal(notifyNewMessage, args);
+        await getExternalWorkflowHandle(workflowId).signal(notifyNewMessage, {
+          chatId: workflowInfo().workflowId,
+        });
       }
     }
 

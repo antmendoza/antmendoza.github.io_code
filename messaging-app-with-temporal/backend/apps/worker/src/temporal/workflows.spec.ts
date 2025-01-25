@@ -1,6 +1,6 @@
-import {TestWorkflowEnvironment} from '@temporalio/testing';
-import {DefaultLogger, Runtime, Worker} from '@temporalio/worker';
-import {Client, Workflow, WorkflowHandle} from '@temporalio/client';
+import { TestWorkflowEnvironment } from '@temporalio/testing';
+import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
+import { Client, Workflow, WorkflowHandle } from '@temporalio/client';
 import {
   ackNotificationsInChat,
   addContact,
@@ -11,8 +11,8 @@ import {
   sendMessage,
   startChatWithContact,
 } from '@app/shared';
-import {createUserWorkflowIdFromUserId, userWorkflow} from './workflows';
-import {setTimeout} from 'timers/promises';
+import { createUserWorkflowIdFromUserId, userWorkflow } from './workflows';
+import { setTimeout } from 'timers/promises';
 
 const taskQueue = 'test-msgs';
 
