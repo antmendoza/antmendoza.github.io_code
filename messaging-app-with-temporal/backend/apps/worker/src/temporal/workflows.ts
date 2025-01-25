@@ -3,7 +3,6 @@ import {
   getExternalWorkflowHandle,
   ParentClosePolicy,
   setHandler,
-  sleep,
   startChild,
   uuid4,
   workflowInfo,
@@ -61,7 +60,7 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
     chats.push(chatInfo);
 
     //TODO race condition, review
-    await sleep(1000);
+    //await sleep(1000);
 
     await condition(() => chatInfo.started);
 
@@ -104,11 +103,18 @@ export async function userWorkflow(session: UserSessionRequest): Promise<void> {
   });
 
   setHandler(getContactList, () => contacts);
-  setHandler(getNotifications, () =>
-    chats.map((c) => {
-      return { chatId: c.chatId, pendingNotifications: c.pendingNotifications };
-    }),
-  );
+
+  setHandler(getNotifications, () => {
+    return chats
+      .map((c) => {
+        if (c.pendingNotifications > 0) {
+          return { chatId: c.chatId, pendingNotifications: c.pendingNotifications };
+        }
+      })
+      .filter((c) => c);
+  });
+
+
   setHandler(getChatList, () => {
     return chats;
   });

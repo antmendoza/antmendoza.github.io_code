@@ -1,6 +1,6 @@
-import { TestWorkflowEnvironment } from '@temporalio/testing';
-import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
-import { Client, Workflow, WorkflowHandle } from '@temporalio/client';
+import {TestWorkflowEnvironment} from '@temporalio/testing';
+import {DefaultLogger, Runtime, Worker} from '@temporalio/worker';
+import {Client, Workflow, WorkflowHandle} from '@temporalio/client';
 import {
   ackNotificationsInChat,
   addContact,
@@ -11,8 +11,8 @@ import {
   sendMessage,
   startChatWithContact,
 } from '@app/shared';
-import { createUserWorkflowIdFromUserId, userWorkflow } from './workflows';
-import { setTimeout } from 'timers/promises';
+import {createUserWorkflowIdFromUserId, userWorkflow} from './workflows';
+import {setTimeout} from 'timers/promises';
 
 const taskQueue = 'test-msgs';
 
@@ -137,7 +137,7 @@ describe('example workflow', function () {
       senderUserId: user2,
     });
 
-    while ((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications == 0) {
+    while ((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0]?.pendingNotifications == 0) {
       await setTimeout(50);
     }
 
@@ -154,7 +154,7 @@ describe('example workflow', function () {
     expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(2);
 
     await userWorkflowUser1Handler.executeUpdate(ackNotificationsInChat, { args: [{ chatId: chatId }] });
-    expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(0);
+    expect((await getNotificationsForWorkflow(userWorkflowUser1Handler)).length).toEqual(0);
   });
 
   //test send messages to two chats
@@ -207,8 +207,7 @@ describe('example workflow', function () {
       args: [{ chatId: (await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].chatId }],
     });
 
-    expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(0);
-    expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[1].pendingNotifications).toEqual(1);
+    expect((await getNotificationsForWorkflow(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(1);
   });
 });
 
