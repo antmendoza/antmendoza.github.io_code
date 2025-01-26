@@ -6,7 +6,6 @@ import {
   addContact,
   getChatList,
   getContactList,
-  getDescription,
   getNotifications,
   sendMessage,
   startChatWithContact,
@@ -21,7 +20,6 @@ describe('chat workflow', function () {
   let client: Client;
   let handle: WorkflowHandle;
   let shutdown: () => Promise<void>;
-  let startUserWorkflow: (user: string) => Promise<WorkflowHandle>;
   let startUserWorkflowWithInput: (workflowInput: UserSessionRequest) => Promise<WorkflowHandle>;
   let env: TestWorkflowEnvironment;
 
@@ -45,21 +43,6 @@ describe('chat workflow', function () {
   beforeEach(async () => {
     client = env.client;
 
-    startUserWorkflow = async (user: string) => {
-      handle = await client.workflow.start(userSessionWorkflow, {
-        taskQueue,
-        workflowExecutionTimeout: 10_000,
-        workflowId: createUserWorkflowIdFromUserId(user),
-        args: [
-          {
-            userId: user,
-            contacts: [],
-            chats: [],
-          },
-        ],
-      });
-      return handle;
-    };
     startUserWorkflowWithInput = async (workflowInput: UserSessionRequest) => {
       handle = await client.workflow.start(userSessionWorkflow, {
         taskQueue,
@@ -150,21 +133,31 @@ describe('chat workflow', function () {
     const chatsUser1 = await userWorkflowUser1Handler.query(getChatList);
     expect(chatsUser1.length).toEqual(2);
 
-    const chatHandler_1 = client.workflow.getHandle(chatsUser1[0].chatId);
+    const user1_chatHandler_with_user2 = client.workflow.getHandle(chatsUser1[0].chatId);
 
     //user2 send message
-    await chatHandler_1.signal(sendMessage, {
+    await user1_chatHandler_with_user2.signal(sendMessage, {
       id: Math.random().toString(),
       content: `Hello, how are you?`,
       senderUserId: user2,
     });
 
-    const chatHandler_2 = client.workflow.getHandle(chatsUser1[1].chatId);
+    const user1_chatHandler_with_user3 = client.workflow.getHandle(chatsUser1[1].chatId);
+    while ((await _getNotifications(userWorkflowUser1Handler)).length != 1) {
+      await setTimeout(50);
+    }
+    expect((await _getNotifications(userWorkflowUser1Handler)).length).toEqual(1);
+    expect((await _getNotifications(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(1);
 
     //user3 send message
-    await chatHandler_2.signal(sendMessage, {
+    await user1_chatHandler_with_user3.signal(sendMessage, {
       id: Math.random().toString(),
-      content: `Hello, how are you?`,
+      content: `Hi! 👋`,
+      senderUserId: user3,
+    });
+    await user1_chatHandler_with_user3.signal(sendMessage, {
+      id: Math.random().toString(),
+      content: `che cosa fai? 🤌`,
       senderUserId: user3,
     });
 
@@ -173,13 +166,13 @@ describe('chat workflow', function () {
     }
 
     expect((await _getNotifications(userWorkflowUser1Handler)).length).toEqual(2);
-    expect((await _getNotifications(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(1);
-    expect((await _getNotifications(userWorkflowUser1Handler))[1].pendingNotifications).toEqual(1);
+    expect((await _getNotifications(userWorkflowUser1Handler))[1].pendingNotifications).toEqual(2);
 
     await userWorkflowUser1Handler.executeUpdate(ackNotificationsInChat, {
-      args: [{ chatId: (await _getNotifications(userWorkflowUser1Handler))[0].chatId }],
+      args: [{ chatId: user1_chatHandler_with_user3.workflowId }],
     });
 
+    expect((await _getNotifications(userWorkflowUser1Handler)).length).toEqual(1);
     expect((await _getNotifications(userWorkflowUser1Handler))[0].pendingNotifications).toEqual(1);
   });
 });

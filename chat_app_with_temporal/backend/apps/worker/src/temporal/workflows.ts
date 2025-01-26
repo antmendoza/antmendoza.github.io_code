@@ -45,9 +45,7 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
 
   setHandler(startChatWithContact, async (userId: string) => {
     //TODO check preconditions
-
     console.log(`[startChatWithContact] userId: ${userId}`);
-
     const chatWithWorkflowId = `chat-${uuid4()}`;
     const chatInfo = {
       chatId: chatWithWorkflowId,
