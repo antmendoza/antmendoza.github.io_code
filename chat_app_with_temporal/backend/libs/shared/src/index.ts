@@ -22,6 +22,7 @@ export type JoinChatWithContactRequest = {
 export type UserSessionRequest = {
   userId: string;
   contacts: string[];
+  // store the chats workflows as workflow input to carry it over to the next workflow when continue as new
   chats: ChatInfo[];
 };
 

@@ -35,7 +35,6 @@ import {
  * @param session is the workflow state
  */
 export async function userSessionWorkflow(session: UserSessionRequest): Promise<void> {
-
   setHandler(addContact, (contact: string) => {
     console.log(`[addContact] Adding contact: ${contact}`);
     if (!session.contacts.includes(contact)) {
@@ -45,6 +44,8 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
   });
 
   setHandler(startChatWithContact, async (userId: string) => {
+    //TODO check preconditions
+
     console.log(`[startChatWithContact] userId: ${userId}`);
 
     const chatWithWorkflowId = `chat-${uuid4()}`;
