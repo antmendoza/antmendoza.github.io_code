@@ -35,13 +35,11 @@ import {
  * @param session is the workflow state
  */
 export async function userSessionWorkflow(session: UserSessionRequest): Promise<void> {
-  const contacts = [];
-  const chats: ChatInfo[] = [];
 
   setHandler(addContact, (contact: string) => {
     console.log(`[addContact] Adding contact: ${contact}`);
-    if (!contacts.includes(contact)) {
-      contacts.push(contact);
+    if (!session.contacts.includes(contact)) {
+      session.contacts.push(contact);
     }
     return null;
   });
@@ -56,14 +54,14 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
       started: false,
       userId: userId,
     };
-    chats.push(chatInfo);
+    session.chats.push(chatInfo);
     await condition(() => chatInfo.started);
     return null;
   });
 
   setHandler(joinChatWithContact, (request: JoinChatWithContactRequest) => {
     console.log(`[joinChatWithContact] Request ${JSON.stringify(request)}`);
-    chats.push({
+    session.chats.push({
       chatId: request.chatId,
       pendingNotifications: 0,
       started: true,
@@ -74,7 +72,7 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
 
   setHandler(notifyNewMessage, (request: NotifyNewMessageRequest) => {
     console.log(`[notifyNewMessage] Request: ${JSON.stringify(request)}`);
-    chats.map((notification) => {
+    session.chats.map((notification) => {
       if (notification.chatId == request.chatId) {
         notification.pendingNotifications = notification.pendingNotifications + 1;
       }
@@ -84,7 +82,7 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
 
   setHandler(ackNotificationsInChat, (request: AckNotificationsInChatRequest) => {
     console.log(`[ackNotificationsInChat] Request: ${JSON.stringify(request)}`);
-    chats.map((notification) => {
+    session.chats.map((notification) => {
       if (notification.chatId == request.chatId) {
         notification.pendingNotifications = 0;
       }
@@ -94,10 +92,10 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
     return null;
   });
 
-  setHandler(getContactList, () => contacts);
+  setHandler(getContactList, () => session.contacts);
 
   setHandler(getNotifications, () => {
-    return chats
+    return session.chats
       .map((c) => {
         if (c.pendingNotifications > 0) {
           return { chatId: c.chatId, pendingNotifications: c.pendingNotifications };
@@ -107,13 +105,13 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
   });
 
   setHandler(getChatList, () => {
-    return chats;
+    return session.chats;
   });
 
   while (true) {
-    await condition(() => chats.some((c) => !c.started));
+    await condition(() => session.chats.some((c) => !c.started));
 
-    const pendingChat = chats.find((c) => !c.started);
+    const pendingChat = session.chats.find((c) => !c.started);
 
     console.log('Processing chat', pendingChat);
     const targetWorkflowId = createUserWorkflowIdFromUserId(pendingChat.userId);
@@ -126,6 +124,7 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
         {
           users: [session.userId, pendingChat.userId],
           usersWorkflowId: [workflowInfo().workflowId, targetWorkflowId],
+          messages: [],
         },
       ],
     });
@@ -140,7 +139,7 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
     console.log(`User notified (targetWorkflowId: ${targetWorkflowId}) to join chat ${pendingChat.chatId}`);
 
     //Mark chat as started
-    chats.map((c) => {
+    session.chats.map((c) => {
       if (c.chatId == pendingChat.chatId) {
         c.started = true;
       }
@@ -156,8 +155,6 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
 export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<void> {
   console.log(`chatWorkflow started: ${workflowInfo().workflowId} with input ${JSON.stringify(chatRequest)}`);
 
-  const messages: Message[] = [];
-
   setHandler(getDescription, () => {
     return chatRequest;
   });
@@ -170,8 +167,8 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
   });
 
   setHandler(sendMessage, (request: SendMessageRequest) => {
-    if (!messages.some((m) => m.id == request.id)) {
-      messages.push({
+    if (!chatRequest.messages.some((m) => m.id == request.id)) {
+      chatRequest.messages.push({
         id: request.id,
         sender: request.senderUserId,
         content: request.content,
@@ -182,9 +179,9 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
 
   while (true) {
     //TODO Continue as new
-    await condition(() => messages.some((m) => !m.processed));
+    await condition(() => chatRequest.messages.some((m) => !m.processed));
 
-    const message = messages.find((m) => !m.processed);
+    const message = chatRequest.messages.find((m) => !m.processed);
 
     console.log('processing message   ', message);
 
@@ -200,7 +197,7 @@ export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<vo
       }
     }
 
-    messages.map((m) => {
+    chatRequest.messages.map((m) => {
       if (m.id == message.id) {
         m.processed = true;
       }

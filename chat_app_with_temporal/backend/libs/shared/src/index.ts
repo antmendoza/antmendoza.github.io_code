@@ -21,11 +21,14 @@ export type JoinChatWithContactRequest = {
 
 export type UserSessionRequest = {
   userId: string;
+  contacts: string[];
+  chats: ChatInfo[];
 };
 
 export type ChatWorkflowRequest = {
   users: string[];
   usersWorkflowId: string[];
+  messages: Message[];
 };
 
 export type SendMessageRequest = {

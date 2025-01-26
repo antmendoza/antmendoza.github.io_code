@@ -48,7 +48,13 @@ describe('chat workflow', function () {
         taskQueue,
         workflowExecutionTimeout: 10_000,
         workflowId: createUserWorkflowIdFromUserId(user),
-        args: [{ userId: user }],
+        args: [
+          {
+            userId: user,
+            contacts: [],
+            chats: [],
+          },
+        ],
       });
       return handle;
     };
