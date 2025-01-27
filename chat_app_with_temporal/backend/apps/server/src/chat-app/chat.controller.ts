@@ -6,23 +6,13 @@ import { ChatInfo } from '@app/shared';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  @Get()
-  async getMsgList(): Promise<any> {
-    const messages = await this.chatService.getChatList('test');
-
-    if (messages === null) {
-      return [];
-    }
-
-    return messages;
+  @Post('start-session/:userId')
+  async startUserSession(@Param('userId') userId: string): Promise<any> {
+    const sessionId = await this.chatService.startUserSession(userId);
+    return { sessionId: sessionId };
   }
 
-  @Post('chats/start-session/:userId')
-  async startUserSession(@Param('userId') userId: string): Promise<string> {
-    return await this.chatService.startUserSession(userId);
-  }
-
-  @Get('chats/:userId')
+  @Get(':userId')
   async getChats(@Param('userId') userId: string): Promise<ChatInfo[]> {
     return await this.chatService.getChatList(userId);
   }

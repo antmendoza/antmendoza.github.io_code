@@ -1,89 +1,15 @@
 <div class="container">
   <mat-card appearance="outlined" class="card-layout">
     <mat-card-header>
-      <mat-card-title> Add To-do</mat-card-title>
+      <mat-card-title> User id: {{userId}} </mat-card-title>
     </mat-card-header>
+
     <mat-card-content>
-      @if (selectedIndex >= 0) {
-        <div class="error-container">
-          <p>You are in Editing Mode... You can not do any actions on the existing list</p>
-        </div>
-      }
       <div>
-        <mat-form-field appearance="outline">
-          <mat-label>Title</mat-label>
-          <input matInput placeholder="Title" [(ngModel)]="title">
-        </mat-form-field>
-
-
-        <mat-form-field class="example-full-width">
-          <mat-label>MM/DD/YYYY</mat-label>
-          <input matInput [matDatepicker]="picker"
-                 [(ngModel)]="dueDate"
-                 (click)="picker.open(); setDate()">
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field class="example-full-width">
-          <mat-label>HH:mm </mat-label>
-          <input matInput [matTimepicker]="timepicker"
-                 [(ngModel)]="dueDate"
-                 (click)="timepicker.open()">
-          <mat-timepicker #timepicker></mat-timepicker>
-        </mat-form-field>
-
-        <!--button mat-raised-button (click)="picker.open()">Open</button-->
-
-          @if (selectedIndex >=0) {
-            <button mat-raised-button (click)="updateItem()">Update</button>
-          } @else {
-            <button mat-raised-button (click)="save()">Create</button>
-          }
-          <button mat-raised-button (click)="reset()">Clear</button>
-
-      </div>
-
-
-      <br/>
-      <hr/>
-
-
-      <mat-card-header>
-        <mat-card-title> To-do list</mat-card-title>
-      </mat-card-header>
-
-      @for (item of todoList; track item.id; let i = $index) {
-        <div class="listing">
-          <div>
-            <mat-checkbox (click)="markAsCompleted($event, i)" [disabled]="isCompleted(item)">
-              <div [ngClass]="cssClassItem(item)">
-                <span
-                    [ngClass]="isCompleted(item) ? 'crossover' : ''">
-                    {{item.title}}
-                </span>
-                <span *ngIf="hasDueDate(item)">
-                  <br/>
-                  {{item.dueDate | date: 'MM/dd/yyyy HH:mm:ss'}}
-                </span>
-              </div>
-
-            </mat-checkbox>
-          </div>
-          @if (selectedIndex < 0 && !isCompleted(item)) {
-            <div>
-              @if (!item.done) {
-                <mat-icon matSuffix (click)="editItem(i, item)">edit</mat-icon>&nbsp;
-              }
-              <mat-icon matSuffix (click)="deleteConfirmation(i)">delete</mat-icon>
-            </div>
-          }
-
+          <mat-form-field appearance="outline">
+              <pre> </pre>
+          </mat-form-field>
         </div>
-      } @empty {
-        <div class="error-container">
-        <p>No Records added</p>
-      </div>
-      }
     </mat-card-content>
   </mat-card>
 </div>

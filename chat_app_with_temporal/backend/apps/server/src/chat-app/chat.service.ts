@@ -22,10 +22,12 @@ export class ChatService {
         chats: [],
       };
 
+      console.log('workflow id: ' + workflowId);
+
       await this.client.workflow.start(userSessionWorkflow, {
         taskQueue: CHAT_TASK_QUEUE,
         workflowId: workflowId,
-        args: userSession as any,
+        args: [userSession],
       });
       console.log('Started new workflow');
     } catch (err) {
