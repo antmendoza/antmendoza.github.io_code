@@ -1,5 +1,5 @@
 import { Worker } from '@temporalio/worker';
-import { taskQueue } from '@app/shared';
+import { CHAT_TASK_QUEUE } from '@app/shared';
 
 export const ChatWorkerProviders = [
   {
@@ -9,7 +9,7 @@ export const ChatWorkerProviders = [
       const workflowOption = { workflowsPath: require.resolve('../temporal/workflows') };
 
       const worker = await Worker.create({
-        taskQueue,
+        taskQueue: CHAT_TASK_QUEUE,
         ...workflowOption,
       });
 

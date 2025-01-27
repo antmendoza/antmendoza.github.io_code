@@ -1,15 +1,41 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Client, WorkflowHandle } from '@temporalio/client';
-import { getChats } from '@app/shared';
+import { Inject, Injectable } from '@nestjs/common';
+import { Client, WorkflowExecutionAlreadyStartedError } from '@temporalio/client';
+import { CHAT_TASK_QUEUE, getChatList, UserSessionRequest } from '@app/shared';
+import { createUserWorkflowIdFromUserId, userSessionWorkflow } from '../../../worker/src/temporal/workflows';
 
 @Injectable()
 export class ChatService {
-  constructor(@Inject('MSG_WORKFLOW_HANDLE') private handle: WorkflowHandle) {}
+  constructor(@Inject('WORKFLOW_CLIENT') private client: Client) {}
 
-  async getMessagesQuery() {
-    return this.handle.query(getChats);
+  async getChatList(userId: string) {
+    const workflowId = createUserWorkflowIdFromUserId(userId);
+    return await this.client.workflow.getHandle(workflowId).query(getChatList);
+  }
+
+  async startUserSession(userId: string) {
+    const workflowId = createUserWorkflowIdFromUserId(userId);
+
+    try {
+      const userSession: UserSessionRequest = {
+        userId: userId,
+        contacts: [],
+        chats: [],
+      };
+
+      await this.client.workflow.start(userSessionWorkflow, {
+        taskQueue: CHAT_TASK_QUEUE,
+        workflowId: workflowId,
+        args: userSession as any,
+      });
+      console.log('Started new workflow');
+    } catch (err) {
+      if (err instanceof WorkflowExecutionAlreadyStartedError) {
+        console.log('Reusing existing workflow');
+      } else {
+        throw err;
+      }
+    }
+
+    return workflowId;
   }
 }
-
-@Injectable()
-export class MsgClient extends Client {}

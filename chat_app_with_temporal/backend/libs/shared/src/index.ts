@@ -1,6 +1,6 @@
 import { defineQuery, defineSignal, defineUpdate } from '@temporalio/workflow';
 
-export const taskQueue = 'chat-taskqueue';
+export const CHAT_TASK_QUEUE = 'chat-taskqueue';
 
 export type ChatInfo = {
   chatId: string;
