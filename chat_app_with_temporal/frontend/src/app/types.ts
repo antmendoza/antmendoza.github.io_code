@@ -37,6 +37,7 @@ export type SendMessageRequest = {
   id: string;
   content: string;
   senderUserId: string;
+  timestamp: string;
 };
 
 export type Message = {
@@ -44,6 +45,7 @@ export type Message = {
   sender: string;
   content: string;
   processed: boolean;
+  timestamp: string;
 };
 
 export type NotifyNewMessageRequest = {

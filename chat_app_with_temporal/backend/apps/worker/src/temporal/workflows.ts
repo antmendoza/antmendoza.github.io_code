@@ -182,6 +182,7 @@ export async function chatWorkflow(chatRequest: ChatWorkflowInfo): Promise<void>
         sender: request.senderUserId,
         content: request.content,
         processed: false,
+        timestamp: request.timestamp,
       });
     }
   });

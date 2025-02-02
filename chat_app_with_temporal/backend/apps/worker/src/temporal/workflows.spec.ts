@@ -138,6 +138,7 @@ describe('chat workflow', function () {
       id: Math.random().toString(),
       content: `Hello, how are you?`,
       senderUserId: user2,
+      timestamp: new Date().toISOString(),
     });
 
     const user1_chatHandler_with_user3 = client.workflow.getHandle(chatsUser1[1].chatId);
@@ -152,11 +153,13 @@ describe('chat workflow', function () {
       id: Math.random().toString(),
       content: `Hi! 👋`,
       senderUserId: user3,
+      timestamp: new Date().toISOString(),
     });
     await user1_chatHandler_with_user3.signal(sendMessage, {
       id: Math.random().toString(),
       content: `che cosa fai? 🤌`,
       senderUserId: user3,
+      timestamp: new Date().toISOString(),
     });
 
     while ((await _getNotifications(userWorkflowUser1Handler)).length != 2) {

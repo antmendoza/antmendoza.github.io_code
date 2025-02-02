@@ -14,7 +14,7 @@ import {
   AckNotificationsInChatRequest,
   CHAT_STATUS,
   ChatInfo,
-  ChatWorkflowInfo,
+  ChatWorkflowInfo, Message,
   SendMessageRequest,
   UserSession
 } from './types';
@@ -79,7 +79,7 @@ class OpenChat {
     MatInputModule, MatCardModule,
     MatCheckboxModule, FormsModule,
     CommonModule, MatDialogModule,
-    MatNativeDateModule,
+    MatNativeDateModule
   ]
 })
 
@@ -166,12 +166,14 @@ export class AppComponent {
       return;
     }
 
-
     this.ackNotificationsInChat(this.sessionInfo.getUserId(), {chatId: chatId}).subscribe((v) => {
       this.getChatInfo(chatId).subscribe((v) => {
         this.openChat = new OpenChat(chatId, v);
+        const elem = document.getElementById('chat-container');
+        if (elem){
+          elem.scrollTop = elem.scrollHeight;
+        }
       });
-
     });
   }
 
@@ -190,7 +192,8 @@ export class AppComponent {
       {
         content: this.messageContent,
         id: Math.random() + "",
-        senderUserId: this.sessionInfo.getUserId()
+        senderUserId: this.sessionInfo.getUserId(),
+        timestamp: new Date().toISOString()
       }).subscribe((v) => {
       this.reloadChatInfo(chatId);
     });
@@ -245,5 +248,19 @@ export class AppComponent {
     return this.http.post<void>(this.chatUserSessionUrl + '/' + userId + '/ack-notifications',
       request
     );
+  }
+
+  formatDate(timestamp: string) {
+    //format to HH:mm:ss
+    return new Date(timestamp).toLocaleTimeString();
+
+  }
+
+  messageStyle(message: Message) {
+    if (message.sender == this.sessionInfo.getUserId()) {
+      return 'right-message bubble';
+    } else {
+      return 'left-message bubble';
+    }
   }
 }

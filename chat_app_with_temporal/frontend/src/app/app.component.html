@@ -1,66 +1,87 @@
-<div class="container">
-  <mat-card appearance="outlined" class="card-layout">
+<div>
+  <div
+    style="text-align: center">
+    <h2 *ngIf="sessionInfo.isSessionCreated()">
+      User: {{ sessionInfo.getUserId() }}
+    </h2>
 
-    <mat-card-header>
-      <mat-card-title *ngIf="sessionInfo.isSessionCreated()"> User id: {{ sessionInfo.getUserId() }}</mat-card-title>
-    </mat-card-header>
+    <div *ngIf="!sessionInfo.isSessionCreated()">
+      <h2> Start session as user:</h2>
+      <span *ngFor="let user of users">
+          <button mat-raised-button (click)="selectUser(user)"> {{ user }}</button>
+        </span>
+    </div>
 
-    <mat-card-header>
-      <mat-card-title *ngIf="!sessionInfo.isSessionCreated()"> Select user
-        <ul>
-          <li *ngFor="let user of users">
-            <button mat-raised-button (click)="selectUser(user)"> {{ user }}</button>
-          </li>
-        </ul>
+  </div>
 
-      </mat-card-title>
-    </mat-card-header>
+  <div class="container" style="background-color: #faf9fd;
+    border: #c4c6d0 solid 1px" *ngIf="sessionInfo.isSessionCreated()">
+    <div style="width: 30%; float:left">
 
-    <div *ngIf="sessionInfo.isSessionCreated()">
-      <mat-card-content>
-          <button mat-raised-button color="primary" (click)="addContact()">Add contact</button>
-          <pre> </pre>
-      </mat-card-content>
+      <div *ngIf="sessionInfo.isSessionCreated()">
 
-      <mat-card-content>
-        <mat-card-title>Contacts</mat-card-title>
-        <ul>
-          <li *ngFor="let contact of sessionInfo.getContacts()">
-            {{ contact }}
-            <button mat-raised-button color="primary" (click)="startChat(contact)"> Start chat</button>
-          </li>
-        </ul>
-      </mat-card-content>
-      <mat-card-content>
-        <mat-card-title>Chats</mat-card-title>
-        <ul>
-          <li *ngFor="let chat of sessionInfo.getChats()">
-            <button mat-raised-button color="primary" (click)="selectChat(chat.chatId)">
-              chat with {{ chat.userId }}
-              <span *ngIf="chat.pendingNotifications > 0" style="color:red"> ({{ chat.pendingNotifications }}) </span>
+        <div style="margin-left: 3%">
+          <h3 style="margin-bottom: 0"> Contacts:
+            <button mat-button
+                    style="font-size:10px; margin-bottom: 0"
+                    (click)="addContact()">Add
             </button>
-          </li>
-        </ul>
-      </mat-card-content>
+          </h3>
+          <span *ngFor="let contact of sessionInfo.getContacts()">
+              <button mat-button (click)="startChat(contact)">
+                  {{ contact }}
+              </button>
+                <br/>
+            </span>
+
+        </div>
 
 
-      <div *ngIf="openChat.isActive()">
-        <ul>
-          <li *ngFor="let message of openChat.chatInfo.messages">
-            {{ message.sender }}: {{ message.content }}
-          </li>
-        </ul>
+        <div style="margin-left: 3%">
+          <h3 style="margin-bottom: 0"> Chats:</h3>
 
-        <textarea matInput [(ngModel)]="messageContent" placeholder="Message"
-          (keyup.enter)="sendMessage()" ></textarea>
+          <span *ngFor="let chat of sessionInfo.getChats()">
 
-        <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
-        <button mat-raised-button color="primary" (click)="closeChat()">Close</button>
+              <button mat-button (click)="selectChat(chat.chatId)">
+                  Chat with {{ chat.userId }}
+                <span *ngIf="chat.pendingNotifications > 0" style="color:red">
+                  ({{ chat.pendingNotifications }}) </span>
+              </button>
+              <br/>
+            </span>
+        </div>
+
       </div>
 
+    </div>
+
+    <div style="width: 70%; float:right">
+
+      <div *ngIf="openChat.isActive()">
+
+        <div id="chat-container">
+          <div class="{{messageStyle(message)}}"
+               *ngFor="let message of openChat.chatInfo.messages">
+            <span>
+               {{ message.content }}
+            </span>
+          </div>
+        </div>
 
 
+        <div class="chat-input-container">
+          <br/>
+          <textarea matInput [(ngModel)]="messageContent" placeholder="Message"
+                  style="width: 500px; height: 100px"
+                  (keyup.enter)="sendMessage()"></textarea>
+          <br/>
+          <button mat-button (click)="sendMessage()">Send</button>
+          <button mat-button (click)="closeChat()">Close</button>
+        </div>
+
+
+      </div>
 
     </div>
-  </mat-card>
+  </div>
 </div>

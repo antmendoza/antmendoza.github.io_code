@@ -11,11 +11,61 @@
 mat-form-field {
   width: 100%;
 }
+.bubble {
+  --r: 25px; /* the radius */
+  --t: 30px; /* the size of the tail */
 
-mat-card-header {
-  display: flex;
-    justify-content: center;
-    padding-bottom: 20px;
+  max-width: 300px;
+  padding: calc(2*var(--r)/3);
+  -webkit-mask:
+    radial-gradient(var(--t) at var(--_d) 0,#0000 98%,#000 102%)
+    var(--_d) 100%/calc(100% - var(--r)) var(--t) no-repeat,
+    conic-gradient(at var(--r) var(--r),#000 75%,#0000 0)
+    calc(var(--r)/-2) calc(var(--r)/-2) padding-box,
+    radial-gradient(50% 50%,#000 98%,#0000 101%)
+    0 0/var(--r) var(--r) space padding-box;
+  background: #1384C5;
+  color: #fff;
+}
+.left-message {
+  --_d: 0%;
+  border-left: var(--t) solid #0000;
+  margin-right: var(--t);
+  place-self: start;
+  background-color: rgb(250, 230, 175);
+  color: black;
+}
+.right-message {
+  --_d: 100%;
+  border-right: var(--t) solid #0000;
+  margin-left: var(--t);
+  place-self: end;
+  background-color: rgb(234, 250, 175);
+  color: black;
+}
+
+#chat-container {
+  height: 200px;
+  overflow: auto;
+}
+
+.chat-input-container {
+  text-align: right;
+}
+
+textarea {
+  resize: none;
+  box-sizing: border-box;
+  height: auto;
+  min-height: 41px;
+  max-height: 97px;
+  width: 100px;
+  border: 1px solid #e4e7ec;
+  border-radius: 20px;
+  background-color: #f9fafb;
+  outline: none;
+  padding: 0 24px 0 24px;
+  overflow: hidden;
 }
 
 .listing {
