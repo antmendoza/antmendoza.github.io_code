@@ -9,7 +9,7 @@ import {
   getNotifications,
   sendMessage,
   startChatWithContact,
-  UserSessionRequest,
+  UserSession,
 } from '@app/shared';
 import { createUserWorkflowIdFromUserId, userSessionWorkflow } from './workflows';
 import { setTimeout } from 'timers/promises';
@@ -20,7 +20,7 @@ describe('chat workflow', function () {
   let client: Client;
   let handle: WorkflowHandle;
   let shutdown: () => Promise<void>;
-  let startUserWorkflowWithInput: (workflowInput: UserSessionRequest) => Promise<WorkflowHandle>;
+  let startUserWorkflowWithInput: (workflowInput: UserSession) => Promise<WorkflowHandle>;
   let env: TestWorkflowEnvironment;
 
   beforeAll(async function () {
@@ -43,7 +43,7 @@ describe('chat workflow', function () {
   beforeEach(async () => {
     client = env.client;
 
-    startUserWorkflowWithInput = async (workflowInput: UserSessionRequest) => {
+    startUserWorkflowWithInput = async (workflowInput: UserSession) => {
       handle = await client.workflow.start(userSessionWorkflow, {
         taskQueue,
         workflowExecutionTimeout: 10_000,

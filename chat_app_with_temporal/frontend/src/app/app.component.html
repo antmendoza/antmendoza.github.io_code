@@ -1,15 +1,71 @@
 <div class="container">
   <mat-card appearance="outlined" class="card-layout">
+
     <mat-card-header>
-      <mat-card-title> User id: {{userId}} </mat-card-title>
+      <mat-card-title *ngIf="sessionInfo.isSessionCreated()"> User id: {{ sessionInfo.getUserId() }}</mat-card-title>
     </mat-card-header>
 
-    <mat-card-content>
-      <div>
-          <mat-form-field appearance="outline">
-              <pre> </pre>
-          </mat-form-field>
+    <mat-card-header>
+      <mat-card-title *ngIf="!sessionInfo.isSessionCreated()"> Select user
+        <ul>
+          <li *ngFor="let user of users">
+            <button mat-raised-button (click)="selectUser(user)"> {{ user }}</button>
+          </li>
+        </ul>
+
+      </mat-card-title>
+    </mat-card-header>
+
+    <div *ngIf="sessionInfo.isSessionCreated()">
+      <mat-card-content>
+        <mat-form-field appearance="outline">
+          <button mat-raised-button color="primary" (click)="addContact()">Add contact</button>
+          <pre> </pre>
+        </mat-form-field>
+      </mat-card-content>
+
+      <!-- create two divs, one on the right and one on the left, the one on the right should be 20% width -->
+      <div style="display: flex;">
+        <div style="flex: 1;">
+          <mat-card-content>
+            <mat-form-field appearance="outline">
+              ---
+            </mat-form-field>
+          </mat-card-content>
         </div>
-    </mat-card-content>
+
+        <div style="flex: 1;">
+          <mat-card-content>
+            <mat-form-field appearance="outline">
+              <mat-label>Messages</mat-label>
+              <ul>
+---
+              </ul>
+            </mat-form-field>
+          </mat-card-content>
+        </div>
+      </div>
+      <mat-card-content>
+        <mat-card-title>Contacts</mat-card-title>
+        <ul>
+          <li *ngFor="let contact of sessionInfo.getContacts()">
+            {{ contact }}
+            <button mat-raised-button color="primary" (click)="startChat(contact)"> Start chat</button>
+          </li>
+        </ul>
+      </mat-card-content>
+      <mat-card-content>
+        <mat-card-title>Chats</mat-card-title>
+        <ul>
+          <li *ngFor="let chat of sessionInfo.getChats()">
+            <button mat-raised-button color="primary" (click)="openChat(chat.chatId)"> chat with {{ chat.userId }}</button>
+          </li>
+        </ul>
+      </mat-card-content>
+
+
+
+
+    </div>
   </mat-card>
 </div>

@@ -1,22 +1,32 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Client, WorkflowExecutionAlreadyStartedError } from '@temporalio/client';
-import { CHAT_TASK_QUEUE, getChatList, UserSessionRequest } from '@app/shared';
+import { addContact, CHAT_TASK_QUEUE, getSessionInfo, startChatWithContact, UserSession } from '@app/shared';
 import { createUserWorkflowIdFromUserId, userSessionWorkflow } from '../../../worker/src/temporal/workflows';
 
 @Injectable()
 export class ChatService {
   constructor(@Inject('WORKFLOW_CLIENT') private client: Client) {}
 
-  async getChatList(userId: string) {
+  async getSessionInfo(userId: string) {
     const workflowId = createUserWorkflowIdFromUserId(userId);
-    return await this.client.workflow.getHandle(workflowId).query(getChatList);
+    return await this.client.workflow.getHandle(workflowId).query(getSessionInfo);
+  }
+
+  async addContactToChat(userId: string, contact: string) {
+    const workflowId = createUserWorkflowIdFromUserId(userId);
+    return await this.client.workflow.getHandle(workflowId).executeUpdate(addContact, { args: [contact] });
+  }
+
+  async startChatWithContact(userId: string, contact: string) {
+    const workflowId = createUserWorkflowIdFromUserId(userId);
+    return await this.client.workflow.getHandle(workflowId).executeUpdate(startChatWithContact, { args: [contact] });
   }
 
   async startUserSession(userId: string) {
     const workflowId = createUserWorkflowIdFromUserId(userId);
 
     try {
-      const userSession: UserSessionRequest = {
+      const userSession: UserSession = {
         userId: userId,
         contacts: [],
         chats: [],

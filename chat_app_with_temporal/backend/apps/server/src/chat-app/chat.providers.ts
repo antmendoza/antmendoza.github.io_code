@@ -1,13 +1,5 @@
 import { Provider } from '@nestjs/common';
-import {
-  Client,
-  WorkflowExecutionAlreadyStartedError,
-  Connection,
-  ConnectionOptions,
-  Workflow,
-  WorkflowHandle,
-} from '@temporalio/client';
-import { CHAT_TASK_QUEUE } from '@app/shared';
+import { Client, Connection, ConnectionOptions } from '@temporalio/client';
 
 export const chatProviders: Provider[] = [
   {

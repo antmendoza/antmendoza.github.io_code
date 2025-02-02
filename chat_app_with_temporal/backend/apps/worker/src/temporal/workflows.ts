@@ -10,31 +10,30 @@ import {
 
 import {
   ackNotificationsInChat,
-  AckNotificationsInChatRequest,
   addContact,
-  ChatInfo,
   ChatWorkflowRequest,
   getChatList,
   getContactList,
   getDescription,
   getDescriptionForUser,
   getNotifications,
+  getSessionInfo,
   joinChatWithContact,
   JoinChatWithContactRequest,
-  Message,
   notifyNewMessage,
   NotifyNewMessageRequest,
   sendMessage,
   SendMessageRequest,
   startChatWithContact,
-  UserSessionRequest,
+  UserSession,
 } from '../../../../libs/shared/src';
+import { AckNotificationsInChatRequest } from '@app/shared/types';
 
 /**
  * User workflow, responsible for managing user contacts and chats for a given user
  * @param session is the workflow state
  */
-export async function userSessionWorkflow(session: UserSessionRequest): Promise<void> {
+export async function userSessionWorkflow(session: UserSession): Promise<void> {
   setHandler(addContact, (contact: string) => {
     console.log(`[addContact] Adding contact: ${contact}`);
     if (!session.contacts.includes(contact)) {
@@ -105,6 +104,10 @@ export async function userSessionWorkflow(session: UserSessionRequest): Promise<
 
   setHandler(getChatList, () => {
     return session.chats;
+  });
+
+  setHandler(getSessionInfo, () => {
+    return session;
   });
 
   while (true) {
