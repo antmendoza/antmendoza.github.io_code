@@ -10,14 +10,15 @@ import {CommonModule} from '@angular/common';
 import {MatDialogModule} from '@angular/material/dialog';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {MatNativeDateModule} from '@angular/material/core';
-import {UserSession} from './types';
+import {AckNotificationsInChatRequest, ChatWorkflowInfo, SendMessageRequest, UserSession} from './types';
+import {Observable} from 'rxjs';
 
 
 class UserSessionInfo {
   private userSession: UserSession;
 
   constructor(userSession: any) {
-    this.userSession= userSession;
+    this.userSession = userSession;
   }
 
   public isSessionCreated(): boolean {
@@ -25,26 +26,41 @@ class UserSessionInfo {
   }
 
   getUserId(): string {
-    if(this.isSessionCreated()){
+    if (this.isSessionCreated()) {
       return this.userSession.userId;
     }
     return '';
   }
 
   getContacts() {
-    console.log(this.userSession.contacts)
-    if(this.isSessionCreated()){
+    if (this.isSessionCreated()) {
       return this.userSession.contacts;
     }
     return [];
   }
 
   getChats() {
-    if(this.isSessionCreated()){
+    if (this.isSessionCreated()) {
       return this.userSession.chats;
     }
     return [];
   }
+}
+
+
+class OpenChat {
+  chatInfo: ChatWorkflowInfo;
+  chatId: string;
+
+  constructor(chatId: any, chatInfo: any) {
+    this.chatId = chatId;
+    this.chatInfo = chatInfo;
+  }
+
+  isActive(): boolean {
+    return this.chatId != null;
+  }
+
 }
 
 @Component({
@@ -68,26 +84,37 @@ export class AppComponent {
 
   //TODO: replace with your user id
   private url = 'http://localhost:3000';
-  private chatUrl = 'http://localhost:3000/chats';
-  private chatUserSession = 'http://localhost:3000/user-sessions';
+  private chatUrl = this.url+'/chats';
+  private chatUserSessionUrl = this.url+'/user-sessions';
   protected sessionInfo: UserSessionInfo = new UserSessionInfo(null);
-  protected activeChat: any = null;
+  // @ts-ignore
+  protected openChat: OpenChat = new OpenChat(null, null);
+  protected messageContent: string='';
+  private reloadTime = 1_000;
+
 
   constructor(private http: HttpClient) {
     this.getUsers();
   }
 
 
-
 /////////////////////////// UI METHODS ///////////////////////////
+
+
+  private reloadSessionInfoInterval: any = null;
+
 
   selectUser(userId: string) {
     this.startSession(userId).subscribe((v) => {
 
       this.reloadSessionInfo(userId);
-      setTimeout(() => {
+
+      if (this.reloadSessionInfoInterval) {
+        clearInterval(this.reloadSessionInfoInterval);
+      }
+      this.reloadSessionInfoInterval = setInterval(() => {
         this.reloadSessionInfo(userId);
-      }, 1000);
+      }, this.reloadTime);
 
     });
   }
@@ -114,56 +141,92 @@ export class AppComponent {
     });
   }
 
+  private reloadChatInfoInterval: any = null;
+  selectChat(chatId: string) {
+    this.closeChat();
+    this.reloadChatInfo(chatId);
+    this.reloadChatInfoInterval = setInterval(() => {
+      this.reloadChatInfo(chatId);
+    }, this.reloadTime);
+  }
 
-
-  openChat(chatId: string) {
-    this.getChatInfo(chatId).subscribe((v) => {
-      this.activeChat = v;
+  reloadChatInfo(chatId: string) {
+    this.ackNotificationsInChat(this.sessionInfo.getUserId(), {chatId: chatId}).subscribe((v) => {
+      this.getChatInfo(chatId).subscribe((v) => {
+        this.openChat = new OpenChat(chatId, v);
+      });
     });
   }
+
+  closeChat() {
+    if(this.reloadChatInfoInterval){
+      clearInterval(this.reloadChatInfoInterval);
+    }
+    this.openChat = new OpenChat(null, null);
+  }
+
+
+
+  sendMessage() {
+    const chatId = this.openChat.chatId;
+    this.sendMessageToChat(chatId,
+      {
+        content: this.messageContent,
+        id: Math.random() + "",
+        senderUserId: this.sessionInfo.getUserId()
+      }).subscribe((v) => {
+      this.reloadChatInfo(chatId);
+    });
+    this.messageContent = '';
+  }
+
 
 /////////////////////////// HTTP METHODS ///////////////////////////
 
   private getUsers() {
     this.http.get<string[]>(this.url + "/users")
       .subscribe((data: any) => {
-        console.log(data);
         this.users = data.users;
       });
   }
 
-
-
   private startSession(userId: string) {
-    return this.http.post<void>(this.chatUserSession + "/start-session/" + userId, null);
-
+    return this.http.post<void>(this.chatUserSessionUrl + "/start-session/" + userId, null);
   }
-
 
 
   //create method add contact to chat, where the parameter is the userId and the contactId is the body
   private addContactToChat(userId: string, contactId: string) {
-    return this.http.post<void>(this.chatUserSession + '/' + userId + '/add-contact',
+    return this.http.post<void>(this.chatUserSessionUrl + '/' + userId + '/add-contact',
       {contact: contactId}
     );
   }
 
   private getSessionInfo(userId: string) {
-    return this.http.get<any[]>(this.chatUserSession + '/' + userId);
+    return this.http.get<any[]>(this.chatUserSessionUrl + '/' + userId);
 
   }
 
   private startChatWithContact(userId: string, contactId: string) {
-    return this.http.post<void>(this.chatUserSession + '/' + userId + '/start-chat',
+    return this.http.post<void>(this.chatUserSessionUrl + '/' + userId + '/start-chat',
       {contact: contactId}
     );
   }
 
 
-
-  private getChatInfo(chatId: string) {
-    return this.http.get<void>(this.chatUrl + '/' + chatId );
+  private getChatInfo(chatId: string): Observable<ChatWorkflowInfo> {
+    return this.http.get<ChatWorkflowInfo>(this.chatUrl + '/' + chatId);
   }
 
+  private sendMessageToChat(chatId: string, message: SendMessageRequest) {
+    return this.http.post<void>(this.chatUrl + '/' + chatId + '/send-message',
+      message
+    );
+  }
 
+  private ackNotificationsInChat(userId: string, request: AckNotificationsInChatRequest) {
+    return this.http.post<void>(this.chatUserSessionUrl + '/' + userId + '/ack-notifications',
+      request
+    );
+  }
 }

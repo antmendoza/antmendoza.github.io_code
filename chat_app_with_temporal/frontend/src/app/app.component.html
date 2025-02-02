@@ -18,33 +18,10 @@
 
     <div *ngIf="sessionInfo.isSessionCreated()">
       <mat-card-content>
-        <mat-form-field appearance="outline">
           <button mat-raised-button color="primary" (click)="addContact()">Add contact</button>
           <pre> </pre>
-        </mat-form-field>
       </mat-card-content>
 
-      <!-- create two divs, one on the right and one on the left, the one on the right should be 20% width -->
-      <div style="display: flex;">
-        <div style="flex: 1;">
-          <mat-card-content>
-            <mat-form-field appearance="outline">
-              ---
-            </mat-form-field>
-          </mat-card-content>
-        </div>
-
-        <div style="flex: 1;">
-          <mat-card-content>
-            <mat-form-field appearance="outline">
-              <mat-label>Messages</mat-label>
-              <ul>
----
-              </ul>
-            </mat-form-field>
-          </mat-card-content>
-        </div>
-      </div>
       <mat-card-content>
         <mat-card-title>Contacts</mat-card-title>
         <ul>
@@ -58,10 +35,27 @@
         <mat-card-title>Chats</mat-card-title>
         <ul>
           <li *ngFor="let chat of sessionInfo.getChats()">
-            <button mat-raised-button color="primary" (click)="openChat(chat.chatId)"> chat with {{ chat.userId }}</button>
+            <button mat-raised-button color="primary" (click)="selectChat(chat.chatId)">
+              chat with {{ chat.userId }}
+              <span *ngIf="chat.pendingNotifications > 0" style="color:red"> ({{ chat.pendingNotifications }}) </span>
+            </button>
           </li>
         </ul>
       </mat-card-content>
+
+
+      <div *ngIf="openChat.isActive()">
+        <ul>
+          <li *ngFor="let message of openChat.chatInfo.messages">
+            {{ message.sender }}: {{ message.content }}
+          </li>
+        </ul>
+        <input matInput [(ngModel)]="messageContent" placeholder="Message"
+          (keyup.enter)="sendMessage()" />
+        <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
+
+        <button mat-raised-button color="primary" (click)="closeChat()">Close</button>
+      </div>
 
 
 

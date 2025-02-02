@@ -20,6 +20,7 @@ import {
   getSessionInfo,
   joinChatWithContact,
   JoinChatWithContactRequest,
+  Message,
   notifyNewMessage,
   NotifyNewMessageRequest,
   sendMessage,
@@ -35,15 +36,21 @@ import { AckNotificationsInChatRequest } from '@app/shared/types';
  */
 export async function userSessionWorkflow(session: UserSession): Promise<void> {
   setHandler(addContact, (contact: string) => {
-    console.log(`[addContact] Adding contact: ${contact}`);
-    if (!session.contacts.includes(contact)) {
-      session.contacts.push(contact);
-    }
+    addContactToSession(contact);
     return null;
   });
 
   setHandler(startChatWithContact, async (userId: string) => {
-    //TODO check preconditions
+    //TODO add test, and move to validate
+    if (!session.contacts.includes(userId)) {
+      throw new Error(`User ${userId} is not a contact`);
+    }
+
+    if (session.chats.some((c) => c.userId == userId)) {
+      console.log(`[startChatWithContact] Chat with ${userId} already started`);
+      return;
+    }
+
     console.log(`[startChatWithContact] userId: ${userId}`);
     const chatWithWorkflowId = `chat-${uuid4()}`;
     const chatInfo = {
@@ -59,6 +66,9 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
 
   setHandler(joinChatWithContact, (request: JoinChatWithContactRequest) => {
     console.log(`[joinChatWithContact] Request ${JSON.stringify(request)}`);
+
+    addContactToSession(request.userId);
+
     session.chats.push({
       chatId: request.chatId,
       pendingNotifications: 0,
@@ -118,35 +128,47 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
     console.log('Processing chat', pendingChat);
     const targetWorkflowId = createUserWorkflowIdFromUserId(pendingChat.userId);
 
-    //Start chat workflow with the user
-    await startChild(chatWorkflow, {
-      workflowId: pendingChat.chatId,
-      parentClosePolicy: ParentClosePolicy.ABANDON,
-      args: [
-        {
-          users: [session.userId, pendingChat.userId],
-          usersWorkflowId: [workflowInfo().workflowId, targetWorkflowId],
-          messages: [],
-        },
-      ],
-    });
-    console.log('Chat workflow started with id', pendingChat.chatId);
+    try {
+      //TODO Move into an activity with signal with start and remove try-catch
+      //Notify the user workflow to join the chat
+      const workflowHandle = getExternalWorkflowHandle(targetWorkflowId);
+      await workflowHandle.signal(joinChatWithContact, {
+        chatId: pendingChat.chatId,
+        userId: session.userId,
+      });
+      console.log(`User notified (targetWorkflowId: ${targetWorkflowId}) to join chat ${pendingChat.chatId}`);
 
-    //Notify the user workflow to join the chat
-    const workflowHandle = getExternalWorkflowHandle(targetWorkflowId);
-    await workflowHandle.signal(joinChatWithContact, {
-      chatId: pendingChat.chatId,
-      userId: session.userId,
-    });
-    console.log(`User notified (targetWorkflowId: ${targetWorkflowId}) to join chat ${pendingChat.chatId}`);
+      //Start chat workflow with the user
+      await startChild(chatWorkflow, {
+        workflowId: pendingChat.chatId,
+        parentClosePolicy: ParentClosePolicy.ABANDON,
+        args: [
+          {
+            users: [session.userId, pendingChat.userId],
+            usersWorkflowId: [workflowInfo().workflowId, targetWorkflowId],
+            messages: [],
+          },
+        ],
+      });
+      console.log('Chat workflow started with id', pendingChat.chatId);
 
-    //Mark chat as started
-    session.chats.map((c) => {
-      if (c.chatId == pendingChat.chatId) {
-        c.started = true;
-      }
-      return c;
-    });
+      //Mark chat as started
+      session.chats.map((c) => {
+        if (c.chatId == pendingChat.chatId) {
+          c.started = true;
+        }
+        return c;
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  function addContactToSession(contact: string) {
+    if (!session.contacts.includes(contact)) {
+      console.log(`[addContact] Adding contact: ${contact}`);
+      session.contacts.push(contact);
+    }
   }
 }
 
@@ -183,12 +205,15 @@ export async function chatWorkflow(chatRequest: ChatWorkflowInfo): Promise<void>
     //TODO Continue as new
     await condition(() => chatRequest.messages.some((m) => !m.processed));
 
-    const message = chatRequest.messages.find((m) => !m.processed);
+    const message: Message = chatRequest.messages.find((m) => !m.processed);
 
     console.log('processing message   ', message);
 
     //Notify users in the chat except the sender
     for (const user of chatRequest.users) {
+      console.log('Processing user', user);
+      console.log('Processing message.sender', message.sender);
+
       if (user != message.sender) {
         const workflowId = createUserWorkflowIdFromUserId(user);
         console.log('Sending notification [notifyNewMessage] to', workflowId);

@@ -1,6 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Client, WorkflowExecutionAlreadyStartedError } from '@temporalio/client';
-import { addContact, CHAT_TASK_QUEUE, getSessionInfo, startChatWithContact, UserSession } from '@app/shared';
+import {
+  ackNotificationsInChat,
+  AckNotificationsInChatRequest,
+  addContact,
+  CHAT_TASK_QUEUE,
+  getSessionInfo,
+  startChatWithContact,
+  UserSession,
+} from '@app/shared';
 import { createUserWorkflowIdFromUserId, userSessionWorkflow } from '../../../worker/src/temporal/workflows';
 
 @Injectable()
@@ -15,6 +23,11 @@ export class UserSessionService {
   async addContactToChat(userId: string, contact: string) {
     const workflowId = createUserWorkflowIdFromUserId(userId);
     return await this.client.workflow.getHandle(workflowId).executeUpdate(addContact, { args: [contact] });
+  }
+
+  async ackNotificationsInChat(userId: string, request: AckNotificationsInChatRequest) {
+    const workflowId = createUserWorkflowIdFromUserId(userId);
+    return await this.client.workflow.getHandle(workflowId).executeUpdate(ackNotificationsInChat, { args: [request] });
   }
 
   async startChatWithContact(userId: string, contact: string) {
