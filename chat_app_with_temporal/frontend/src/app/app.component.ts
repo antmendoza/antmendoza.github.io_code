@@ -158,7 +158,6 @@ export class AppComponent {
   }
 
   reloadChatInfo(chatId: string) {
-    // iterate this.sessionInfo.getChats() and find chat that isChatStarted
     const chat = this.sessionInfo.getChats().find((c: ChatInfo) =>
       c.chatId == chatId && c.status);
 
@@ -250,11 +249,6 @@ export class AppComponent {
     );
   }
 
-  formatDate(timestamp: string) {
-    //format to HH:mm:ss
-    return new Date(timestamp).toLocaleTimeString();
-
-  }
 
   messageStyle(message: Message) {
     if (message.sender == this.sessionInfo.getUserId()) {
