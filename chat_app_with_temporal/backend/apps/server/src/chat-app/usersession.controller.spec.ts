@@ -2,7 +2,7 @@ import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ChatModule } from './chat.module';
-import { ChatService } from './chat.service';
+import { UserSessionService } from './user-session.service';
 
 describe('chats', () => {
   let app: INestApplication;
@@ -12,7 +12,7 @@ describe('chats', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [ChatModule],
     })
-      .overrideProvider(ChatService)
+      .overrideProvider(UserSessionService)
       .useValue(chatService)
       .compile();
 

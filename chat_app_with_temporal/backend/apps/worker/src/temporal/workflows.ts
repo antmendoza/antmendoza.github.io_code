@@ -11,7 +11,7 @@ import {
 import {
   ackNotificationsInChat,
   addContact,
-  ChatWorkflowRequest,
+  ChatWorkflowInfo,
   getChatList,
   getContactList,
   getDescription,
@@ -154,7 +154,7 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
  * Chat workflow, hold the chat messages and notify users when a new message is received
  * @param chatRequest
  */
-export async function chatWorkflow(chatRequest: ChatWorkflowRequest): Promise<void> {
+export async function chatWorkflow(chatRequest: ChatWorkflowInfo): Promise<void> {
   console.log(`chatWorkflow started: ${workflowInfo().workflowId} with input ${JSON.stringify(chatRequest)}`);
 
   setHandler(getDescription, () => {

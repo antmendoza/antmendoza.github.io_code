@@ -26,7 +26,7 @@ export type UserSession = {
   chats: ChatInfo[];
 };
 
-export type ChatWorkflowRequest = {
+export type ChatWorkflowInfo = {
   users: string[];
   usersWorkflowId: string[];
   messages: Message[];

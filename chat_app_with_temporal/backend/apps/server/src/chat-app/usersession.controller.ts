@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ChatService } from './chat.service';
+import { UserSessionService } from './user-session.service';
 import { UserSession } from '@app/shared';
 
 @Controller('user-sessions')
 export class UserSessionController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: UserSessionService) {}
 
   @Post('start-session/:userId')
   async startUserSession(@Param('userId') userId: string): Promise<any> {

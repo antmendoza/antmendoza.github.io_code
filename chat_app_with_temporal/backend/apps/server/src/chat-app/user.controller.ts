@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { ChatService } from './chat.service';
+import { UserSessionService } from './user-session.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: UserSessionService) {}
 
   @Get('')
   async getUsers(): Promise<any> {
