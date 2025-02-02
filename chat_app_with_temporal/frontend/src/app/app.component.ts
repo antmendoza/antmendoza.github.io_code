@@ -14,7 +14,8 @@ import {
   AckNotificationsInChatRequest,
   CHAT_STATUS,
   ChatInfo,
-  ChatWorkflowInfo, Message,
+  ChatWorkflowInfo,
+  Message,
   SendMessageRequest,
   UserSession
 } from './types';
@@ -91,12 +92,12 @@ export class AppComponent {
 
   //TODO: replace with your user id
   private url = 'http://localhost:3000';
-  private chatUrl = this.url+'/chats';
-  private chatUserSessionUrl = this.url+'/user-sessions';
+  private chatUrl = this.url + '/chats';
+  private chatUserSessionUrl = this.url + '/user-sessions';
   protected sessionInfo: UserSessionInfo = new UserSessionInfo(null);
   // @ts-ignore
   protected openChat: OpenChat = new OpenChat(null, null);
-  protected messageContent: string='';
+  protected messageContent: string = '';
   private reloadTime = 1_000;
 
 
@@ -149,6 +150,7 @@ export class AppComponent {
   }
 
   private reloadChatInfoInterval: any = null;
+
   selectChat(chatId: string) {
     this.closeChat();
     this.reloadChatInfo(chatId);
@@ -161,28 +163,40 @@ export class AppComponent {
     const chat = this.sessionInfo.getChats().find((c: ChatInfo) =>
       c.chatId == chatId && c.status);
 
-    if(chat?.status != CHAT_STATUS.STARTED){
+    if (chat?.status != CHAT_STATUS.STARTED) {
       return;
     }
 
-    this.ackNotificationsInChat(this.sessionInfo.getUserId(), {chatId: chatId}).subscribe((v) => {
+    this.ackNotifications(chatId).subscribe((v) => {
       this.getChatInfo(chatId).subscribe((v) => {
         this.openChat = new OpenChat(chatId, v);
         const elem = document.getElementById('chat-container');
-        if (elem){
+        if (elem) {
           elem.scrollTop = elem.scrollHeight;
         }
       });
     });
   }
 
+  private ackNotifications(chatId: string) {
+    const chat = this.sessionInfo.getChats().find((c: ChatInfo) => c.chatId == chatId);
+    if (chat && chat.pendingNotifications > 0) {
+      return this.ackNotificationsInChat(this.sessionInfo.getUserId(), {chatId: chatId});
+    }
+
+    return new Observable((observer) => {
+      observer.next();
+      observer.complete();
+    });
+
+  }
+
   closeChat() {
-    if(this.reloadChatInfoInterval){
+    if (this.reloadChatInfoInterval) {
       clearInterval(this.reloadChatInfoInterval);
     }
     this.openChat = new OpenChat(null, null);
   }
-
 
 
   sendMessage() {
