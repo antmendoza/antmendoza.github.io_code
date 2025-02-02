@@ -4,8 +4,6 @@ import { Client, Workflow, WorkflowHandle } from '@temporalio/client';
 import {
   ackNotificationsInChat,
   addContact,
-  getContactList,
-  getNotifications,
   getSessionInfo,
   sendMessage,
   startChatWithContact,
@@ -73,10 +71,10 @@ describe('chat workflow', function () {
       contacts: [user0],
       chats: [],
     });
-    expect((await userWorkflowUser1Handler.query(getContactList)).length).toEqual(1);
+    expect((await _getContactList(userWorkflowUser1Handler)).length).toEqual(1);
 
     await userWorkflowUser1Handler.executeUpdate(addContact, { args: [user2] });
-    expect((await userWorkflowUser1Handler.query(getContactList)).length).toEqual(2);
+    expect((await _getContactList(userWorkflowUser1Handler)).length).toEqual(2);
   });
 
   it('start chat', async function () {
@@ -182,9 +180,21 @@ describe('chat workflow', function () {
 });
 
 async function _getNotifications(userWorkflowUser1Handler: WorkflowHandle<Workflow>) {
-  return await userWorkflowUser1Handler.query(getNotifications);
+  return await userWorkflowUser1Handler.query(getSessionInfo).then((session) => {
+    return session.chats
+      .map((c) => {
+        if (c.pendingNotifications > 0) {
+          return { chatId: c.chatId, pendingNotifications: c.pendingNotifications };
+        }
+      })
+      .filter((c) => c);
+  });
 }
 
 async function _getChats(userWorkflowUser1Handler: WorkflowHandle<Workflow>) {
   return await userWorkflowUser1Handler.query(getSessionInfo).then((session) => session.chats);
+}
+
+async function _getContactList(userWorkflowUser1Handler: WorkflowHandle<Workflow>) {
+  return await userWorkflowUser1Handler.query(getSessionInfo).then((session) => session.contacts);
 }

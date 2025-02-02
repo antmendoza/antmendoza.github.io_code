@@ -12,10 +12,8 @@ import {
   ackNotificationsInChat,
   addContact,
   ChatWorkflowInfo,
-  getContactList,
   getDescription,
   getDescriptionForUser,
-  getNotifications,
   getSessionInfo,
   joinChatWithContact,
   JoinChatWithContactRequest,
@@ -98,19 +96,6 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
 
     return null;
   });
-
-  setHandler(getContactList, () => session.contacts);
-
-  setHandler(getNotifications, () => {
-    return session.chats
-      .map((c) => {
-        if (c.pendingNotifications > 0) {
-          return { chatId: c.chatId, pendingNotifications: c.pendingNotifications };
-        }
-      })
-      .filter((c) => c);
-  });
-
 
   setHandler(getSessionInfo, () => {
     return session;
