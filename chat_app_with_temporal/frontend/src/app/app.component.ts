@@ -10,7 +10,14 @@ import {CommonModule} from '@angular/common';
 import {MatDialogModule} from '@angular/material/dialog';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {MatNativeDateModule} from '@angular/material/core';
-import {AckNotificationsInChatRequest, ChatWorkflowInfo, SendMessageRequest, UserSession} from './types';
+import {
+  AckNotificationsInChatRequest,
+  CHAT_STATUS,
+  ChatInfo,
+  ChatWorkflowInfo,
+  SendMessageRequest,
+  UserSession
+} from './types';
 import {Observable} from 'rxjs';
 
 
@@ -151,10 +158,20 @@ export class AppComponent {
   }
 
   reloadChatInfo(chatId: string) {
+    // iterate this.sessionInfo.getChats() and find chat that isChatStarted
+    const chat = this.sessionInfo.getChats().find((c: ChatInfo) =>
+      c.chatId == chatId && c.status);
+
+    if(chat?.status != CHAT_STATUS.STARTED){
+      return;
+    }
+
+
     this.ackNotificationsInChat(this.sessionInfo.getUserId(), {chatId: chatId}).subscribe((v) => {
       this.getChatInfo(chatId).subscribe((v) => {
         this.openChat = new OpenChat(chatId, v);
       });
+
     });
   }
 

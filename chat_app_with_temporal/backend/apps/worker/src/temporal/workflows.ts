@@ -11,9 +11,10 @@ import {
 import {
   ackNotificationsInChat,
   addContact,
+  CHAT_STATUS,
+  ChatInfo,
   ChatWorkflowInfo,
   getDescription,
-  getDescriptionForUser,
   getSessionInfo,
   joinChatWithContact,
   JoinChatWithContactRequest,
@@ -53,11 +54,11 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
     const chatInfo = {
       chatId: chatWithWorkflowId,
       pendingNotifications: 0,
-      started: false,
+      status: CHAT_STATUS.PENDING,
       userId: userId,
     };
     session.chats.push(chatInfo);
-    await condition(() => chatInfo.started);
+    await condition(() => chatInfo.status != CHAT_STATUS.PENDING);
     return null;
   });
 
@@ -69,7 +70,7 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
     session.chats.push({
       chatId: request.chatId,
       pendingNotifications: 0,
-      started: true,
+      status: CHAT_STATUS.STARTED,
       userId: request.userId,
     });
     return null;
@@ -102,9 +103,9 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
   });
 
   while (true) {
-    await condition(() => session.chats.some((c) => !c.started));
+    await condition(() => session.chats.some((c) => isPending(c)));
 
-    const pendingChat = session.chats.find((c) => !c.started);
+    const pendingChat = session.chats.find((c) => isPending(c));
 
     console.log('Processing chat', pendingChat);
     const targetWorkflowId = createUserWorkflowIdFromUserId(pendingChat.userId);
@@ -134,14 +135,11 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
       console.log('Chat workflow started with id', pendingChat.chatId);
 
       //Mark chat as started
-      session.chats.map((c) => {
-        if (c.chatId == pendingChat.chatId) {
-          c.started = true;
-        }
-        return c;
-      });
+      markChatAs(pendingChat, CHAT_STATUS.STARTED);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
-      console.log(e);
+      //Mark chat as failed
+      markChatAs(pendingChat, CHAT_STATUS.FAILED);
     }
   }
 
@@ -150,6 +148,19 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
       console.log(`[addContact] Adding contact: ${contact}`);
       session.contacts.push(contact);
     }
+  }
+
+  function markChatAs(pendingChat: ChatInfo, status: CHAT_STATUS) {
+    session.chats.map((c) => {
+      if (c.chatId == pendingChat.chatId) {
+        c.status = status;
+      }
+      return c;
+    });
+  }
+
+  function isPending(c: ChatInfo) {
+    return c.status == CHAT_STATUS.PENDING;
   }
 }
 
@@ -162,13 +173,6 @@ export async function chatWorkflow(chatRequest: ChatWorkflowInfo): Promise<void>
 
   setHandler(getDescription, () => {
     return chatRequest;
-  });
-
-  setHandler(getDescriptionForUser, (userId: string) => {
-    const usersInChat = chatRequest.users.filter((user) => {
-      return user != userId;
-    });
-    return `chat with ${usersInChat}`;
   });
 
   setHandler(sendMessage, (request: SendMessageRequest) => {

@@ -1,9 +1,7 @@
 import { defineQuery, defineSignal, defineUpdate } from '@temporalio/workflow';
 import {
   AckNotificationsInChatRequest,
-  ChatInfo,
   ChatWorkflowInfo,
-  GetNotificationsResponse,
   JoinChatWithContactRequest,
   NotifyNewMessageRequest,
   SendMessageRequest,
@@ -20,7 +18,6 @@ export const notifyNewMessage = defineSignal<[NotifyNewMessageRequest]>('newMess
 export const ackNotificationsInChat = defineUpdate<[AckNotificationsInChatRequest], null>('ackNotifications');
 
 export const getDescription = defineQuery<ChatWorkflowInfo, null>('getDescription');
-export const getDescriptionForUser = defineQuery<string, [string]>('getDescriptionForUser');
 export const sendMessage = defineSignal<[SendMessageRequest]>('sendMessage');
 
 export * from './types';

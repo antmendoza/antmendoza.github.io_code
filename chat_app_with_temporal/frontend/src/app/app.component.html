@@ -50,10 +50,11 @@
             {{ message.sender }}: {{ message.content }}
           </li>
         </ul>
-        <input matInput [(ngModel)]="messageContent" placeholder="Message"
-          (keyup.enter)="sendMessage()" />
-        <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
 
+        <textarea matInput [(ngModel)]="messageContent" placeholder="Message"
+          (keyup.enter)="sendMessage()" ></textarea>
+
+        <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
         <button mat-raised-button color="primary" (click)="closeChat()">Close</button>
       </div>
 

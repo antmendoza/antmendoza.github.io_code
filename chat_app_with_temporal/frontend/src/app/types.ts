@@ -2,16 +2,17 @@ export type AckNotificationsInChatRequest = {
   chatId: string;
 };
 
+export enum CHAT_STATUS {
+  PENDING = 'PENDING',
+  STARTED = 'STARTED',
+  FAILED = 'FAILED',
+}
+
 export type ChatInfo = {
   chatId: string;
   pendingNotifications: number;
-  started: boolean;
+  status: CHAT_STATUS;
   userId: string;
-};
-
-export type GetNotificationsResponse = {
-  chatId: string;
-  pendingNotifications: number;
 };
 
 export type JoinChatWithContactRequest = {
