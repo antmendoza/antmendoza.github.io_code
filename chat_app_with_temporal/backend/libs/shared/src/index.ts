@@ -13,7 +13,6 @@ import {
 export const CHAT_TASK_QUEUE = 'chat-taskqueue';
 
 export const getSessionInfo = defineQuery<UserSession, null>('getSessionInfo');
-export const getChatList = defineQuery<ChatInfo[], null>('getChatList');
 export const getContactList = defineQuery<string[], null>('getContactList');
 export const addContact = defineUpdate<string, null>('addContact');
 export const startChatWithContact = defineUpdate<string, null>('startChatWithContact');

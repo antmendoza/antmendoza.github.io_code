@@ -4,9 +4,9 @@ import { Client, Workflow, WorkflowHandle } from '@temporalio/client';
 import {
   ackNotificationsInChat,
   addContact,
-  getChatList,
   getContactList,
   getNotifications,
+  getSessionInfo,
   sendMessage,
   startChatWithContact,
   UserSession,
@@ -130,7 +130,7 @@ describe('chat workflow', function () {
     await userWorkflowUser1Handler.executeUpdate(startChatWithContact, { args: [user2] });
     await userWorkflowUser1Handler.executeUpdate(startChatWithContact, { args: [user3] });
 
-    const chatsUser1 = await userWorkflowUser1Handler.query(getChatList);
+    const chatsUser1 = await _getChats(userWorkflowUser1Handler);
     expect(chatsUser1.length).toEqual(2);
 
     const user1_chatHandler_with_user2 = client.workflow.getHandle(chatsUser1[0].chatId);
@@ -164,8 +164,12 @@ describe('chat workflow', function () {
     while ((await _getNotifications(userWorkflowUser1Handler)).length != 2) {
       await setTimeout(50);
     }
-
     expect((await _getNotifications(userWorkflowUser1Handler)).length).toEqual(2);
+
+    //We need to wait until the second message is delivered to the workflow
+    while ((await _getNotifications(userWorkflowUser1Handler))[1].pendingNotifications != 2) {
+      await setTimeout(50);
+    }
     expect((await _getNotifications(userWorkflowUser1Handler))[1].pendingNotifications).toEqual(2);
 
     await userWorkflowUser1Handler.executeUpdate(ackNotificationsInChat, {
@@ -182,5 +186,5 @@ async function _getNotifications(userWorkflowUser1Handler: WorkflowHandle<Workfl
 }
 
 async function _getChats(userWorkflowUser1Handler: WorkflowHandle<Workflow>) {
-  return await userWorkflowUser1Handler.query(getChatList);
+  return await userWorkflowUser1Handler.query(getSessionInfo).then((session) => session.chats);
 }

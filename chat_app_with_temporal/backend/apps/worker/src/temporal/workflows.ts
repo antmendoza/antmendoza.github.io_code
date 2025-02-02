@@ -12,7 +12,6 @@ import {
   ackNotificationsInChat,
   addContact,
   ChatWorkflowInfo,
-  getChatList,
   getContactList,
   getDescription,
   getDescriptionForUser,
@@ -112,9 +111,6 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
       .filter((c) => c);
   });
 
-  setHandler(getChatList, () => {
-    return session.chats;
-  });
 
   setHandler(getSessionInfo, () => {
     return session;
