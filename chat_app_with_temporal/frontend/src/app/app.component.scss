@@ -2,6 +2,7 @@
     display: flex;
     justify-content: center;
     padding-top: 30px;
+    height: 500px;
 }
 
 .card-layout {
@@ -45,7 +46,7 @@ mat-form-field {
 }
 
 #chat-container {
-  height: 200px;
+  height: 300px;
   overflow: auto;
 }
 

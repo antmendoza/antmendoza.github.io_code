@@ -32,7 +32,7 @@ import { AckNotificationsInChatRequest } from '@app/shared/types';
  * User workflow, responsible for managing user contacts and chats for a given user
  * @param session is the workflow state
  */
-export async function userSessionWorkflow(session: UserSession): Promise<void> {
+export async function userWorkflow(session: UserSession): Promise<void> {
   setHandler(addContact, (contact: string) => {
     addContactToSession(contact);
     return null;
@@ -103,6 +103,9 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
   });
 
   while (true) {
+
+    //TODO Continue as new
+
     await condition(() => session.chats.some((c) => isPending(c)));
 
     const pendingChat = session.chats.find((c) => isPending(c));
@@ -111,7 +114,6 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
     const targetWorkflowId = createUserWorkflowIdFromUserId(pendingChat.userId);
 
     try {
-      //TODO Move into an activity with signal with start and remove try-catch
       //Notify the user workflow to join the chat
       const workflowHandle = getExternalWorkflowHandle(targetWorkflowId);
       await workflowHandle.signal(joinChatWithContact, {
@@ -133,12 +135,10 @@ export async function userSessionWorkflow(session: UserSession): Promise<void> {
         ],
       });
       console.log('Chat workflow started with id', pendingChat.chatId);
-
-      //Mark chat as started
       markChatAs(pendingChat, CHAT_STATUS.STARTED);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
-      //Mark chat as failed
+
+    } catch (e: any) {
+      console.log(`Failed to start chat with ${pendingChat.userId}`, e);
       markChatAs(pendingChat, CHAT_STATUS.FAILED);
     }
   }
@@ -188,6 +188,7 @@ export async function chatWorkflow(chatRequest: ChatWorkflowInfo): Promise<void>
   });
 
   while (true) {
+
     //TODO Continue as new
     await condition(() => chatRequest.messages.some((m) => !m.processed));
 
@@ -219,6 +220,11 @@ export async function chatWorkflow(chatRequest: ChatWorkflowInfo): Promise<void>
   }
 }
 
+const workflowIdPrefix = 'user-workflow-';
 export function createUserWorkflowIdFromUserId(userId: string) {
-  return `user-workflow-${userId}`;
+  return `${workflowIdPrefix}${userId}`;
+}
+
+export function extractUserFromWorkflowId(workflowId: string) {
+  return workflowId.replace(workflowIdPrefix, '');
 }

@@ -9,7 +9,11 @@ import {
   startChatWithContact,
   UserSession,
 } from '@app/shared';
-import { createUserWorkflowIdFromUserId, userSessionWorkflow } from '../../../worker/src/temporal/workflows';
+import {
+  createUserWorkflowIdFromUserId,
+  extractUserFromWorkflowId,
+  userWorkflow,
+} from '../../../worker/src/temporal/workflows';
 
 @Injectable()
 export class UserSessionService {
@@ -35,6 +39,19 @@ export class UserSessionService {
     return await this.client.workflow.getHandle(workflowId).executeUpdate(startChatWithContact, { args: [contact] });
   }
 
+  async listUsers() {
+    const list = await this.client.workflowService.listWorkflowExecutions({
+      namespace: 'default',
+      query: "WorkflowType = 'userWorkflow'  AND `ExecutionStatus`='Running'",
+    });
+
+    const users = list.executions.map((e) => {
+      return extractUserFromWorkflowId(e.execution.workflowId);
+    });
+
+    return users;
+  }
+
   async startUserSession(userId: string) {
     const workflowId = createUserWorkflowIdFromUserId(userId);
 
@@ -45,17 +62,17 @@ export class UserSessionService {
         chats: [],
       };
 
-      console.log('workflow id: ' + workflowId);
+      console.log('Starting workflow id: ' + workflowId);
 
-      await this.client.workflow.start(userSessionWorkflow, {
+      await this.client.workflow.start(userWorkflow, {
         taskQueue: CHAT_TASK_QUEUE,
         workflowId: workflowId,
         args: [userSession],
       });
-      console.log('Started new workflow');
+      console.log('Started new workflow: ' + workflowId);
     } catch (err) {
       if (err instanceof WorkflowExecutionAlreadyStartedError) {
-        console.log('Reusing existing workflow');
+        console.log('Reusing existing workflow: ' + workflowId);
       } else {
         throw err;
       }

@@ -16,60 +16,12 @@ import {
   ChatInfo,
   ChatWorkflowInfo,
   Message,
-  SendMessageRequest,
-  UserSession
+  SendMessageRequest
 } from './types';
 import {Observable} from 'rxjs';
+import {UserSessionInfo} from './userSessionInfo';
+import {OpenChat} from './openChat';
 
-
-class UserSessionInfo {
-  private userSession: UserSession;
-
-  constructor(userSession: any) {
-    this.userSession = userSession;
-  }
-
-  public isSessionCreated(): boolean {
-    return this.userSession !== null;
-  }
-
-  getUserId(): string {
-    if (this.isSessionCreated()) {
-      return this.userSession.userId;
-    }
-    return '';
-  }
-
-  getContacts() {
-    if (this.isSessionCreated()) {
-      return this.userSession.contacts;
-    }
-    return [];
-  }
-
-  getChats() {
-    if (this.isSessionCreated()) {
-      return this.userSession.chats;
-    }
-    return [];
-  }
-}
-
-
-class OpenChat {
-  chatInfo: ChatWorkflowInfo;
-  chatId: string;
-
-  constructor(chatId: any, chatInfo: any) {
-    this.chatId = chatId;
-    this.chatInfo = chatInfo;
-  }
-
-  isActive(): boolean {
-    return this.chatId != null;
-  }
-
-}
 
 @Component({
   selector: 'app-root',
@@ -90,7 +42,6 @@ export class AppComponent {
 
   protected users: string[] = [];
 
-  //TODO: replace with your user id
   private url = 'http://localhost:3000';
   private chatUrl = this.url + '/chats';
   private chatUserSessionUrl = this.url + '/user-sessions';
@@ -99,12 +50,32 @@ export class AppComponent {
   protected openChat: OpenChat = new OpenChat(null, null);
   protected messageContent: string = '';
   private reloadTime = 1_000;
+  addingContact: boolean = false;
 
 
   constructor(private http: HttpClient) {
     this.getUsers();
+
   }
 
+
+  private async sendMessage_(user1: string, message: string, messageNumberThenSend: number) {
+
+    while (!this.openChat.isActive()) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+    if (this.sessionInfo.getUserId() == user1) {
+
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const messages = this.openChat.chatInfo.messages;
+      this.messageContent = message;
+      let messageLength = messages.length;
+      if (messageLength == messageNumberThenSend) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        this.sendMessage();
+      }
+    }
+  }
 
 /////////////////////////// UI METHODS ///////////////////////////
 
@@ -134,12 +105,17 @@ export class AppComponent {
   }
 
   addContact() {
-    const contactName = prompt('Enter contact name');
-    if (contactName) {
-      this.addContactToChat(this.sessionInfo.getUserId(), contactName).subscribe((v) => {
+    this.addingContact = true;
+  }
+
+
+  saveContact(contact: any){
+    if (contact.value) {
+      this.addContactToChat(this.sessionInfo.getUserId(), contact.value).subscribe((v) => {
         this.reloadSessionInfo(this.sessionInfo.getUserId());
       });
     }
+    this.addingContact = false;
   }
 
 
@@ -214,6 +190,31 @@ export class AppComponent {
   }
 
 
+
+  hasSelectableContacts() {
+    return this.selectableContacts().length > 0
+  }
+
+
+  selectableContacts() {
+    const contacts = this.users.filter((u) => {
+      return u!=this.sessionInfo.getUserId() &&
+        !this.sessionInfo.getContacts().includes(u);
+    });
+
+    if(contacts.length > 0){
+      contacts.unshift("");
+    }
+    return contacts;
+  }
+
+
+  logout() {
+    this.sessionInfo = new UserSessionInfo(null);
+    this.openChat = new OpenChat(null, null);
+    clearInterval(this.reloadSessionInfoInterval);
+    clearInterval(this.reloadChatInfoInterval);
+  }
 /////////////////////////// HTTP METHODS ///////////////////////////
 
   private getUsers() {

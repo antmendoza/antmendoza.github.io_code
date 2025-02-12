@@ -3,6 +3,7 @@
     style="text-align: center">
     <h2 *ngIf="sessionInfo.isSessionCreated()">
       User: {{ sessionInfo.getUserId() }}
+      <button mat-raised-button (click)="logout()">Logout</button>
     </h2>
 
     <div *ngIf="!sessionInfo.isSessionCreated()">
@@ -22,10 +23,19 @@
 
         <div style="margin-left: 3%">
           <h3 style="margin-bottom: 0"> Contacts:
-            <button mat-button
+
+            <button mat-button *ngIf="!addingContact && hasSelectableContacts()"
                     style="font-size:10px; margin-bottom: 0"
-                    (click)="addContact()">Add
+                    (click)="addContact()">Add contact
             </button>
+
+            <select (change)="saveContact($event.target)" *ngIf="addingContact">
+              <option *ngFor="let contact of selectableContacts()" [value]="contact">
+                {{ contact }}
+              </option>
+            </select>
+
+
           </h3>
           <span *ngFor="let contact of sessionInfo.getContacts()">
               <button mat-button (click)="startChat(contact)">

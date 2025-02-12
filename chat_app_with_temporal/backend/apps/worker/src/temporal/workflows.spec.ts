@@ -9,7 +9,7 @@ import {
   startChatWithContact,
   UserSession,
 } from '@app/shared';
-import { createUserWorkflowIdFromUserId, userSessionWorkflow } from './workflows';
+import { createUserWorkflowIdFromUserId, userWorkflow } from './workflows';
 import { setTimeout } from 'timers/promises';
 
 const taskQueue = 'test-chats';
@@ -42,7 +42,7 @@ describe('chat workflow', function () {
     client = env.client;
 
     startUserWorkflowWithInput = async (workflowInput: UserSession) => {
-      handle = await client.workflow.start(userSessionWorkflow, {
+      handle = await client.workflow.start(userWorkflow, {
         taskQueue,
         workflowExecutionTimeout: 10_000,
         workflowId: createUserWorkflowIdFromUserId(workflowInput.userId),

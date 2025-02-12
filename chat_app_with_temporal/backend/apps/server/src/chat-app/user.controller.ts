@@ -3,14 +3,14 @@ import { UserSessionService } from './user-session.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly chatService: UserSessionService) {}
+  constructor(private readonly userSessionService: UserSessionService) {}
 
   @Get('')
   async getUsers(): Promise<any> {
-    return new Promise((resolve) => {
-      resolve({
-        users: ['user_1', 'user_2'],
-      });
+    return await this.userSessionService.listUsers().then((users) => {
+      return {
+        users: users.sort(),
+      };
     });
   }
 }
