@@ -7,7 +7,7 @@
     </h2>
 
     <div *ngIf="!sessionInfo.isSessionCreated()">
-      <h2> Start session as user:</h2>
+      <h2> Start session:</h2>
       <span *ngFor="let user of users">
           <button mat-raised-button (click)="selectUser(user)"> {{ user }}</button>
         </span>
