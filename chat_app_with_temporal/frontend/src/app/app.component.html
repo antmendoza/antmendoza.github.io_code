@@ -1,0 +1,97 @@
+<div>
+  <div
+    style="text-align: center">
+    <h2 *ngIf="sessionInfo.isSessionCreated()">
+      User: {{ sessionInfo.getUserId() }}
+      <button mat-raised-button (click)="logout()">Logout</button>
+    </h2>
+
+    <div *ngIf="!sessionInfo.isSessionCreated()">
+      <h2> Start session:</h2>
+      <span *ngFor="let user of users">
+          <button mat-raised-button (click)="selectUser(user)"> {{ user }}</button>
+        </span>
+    </div>
+
+  </div>
+
+  <div class="container" style="background-color: #faf9fd;
+    border: #c4c6d0 solid 1px" *ngIf="sessionInfo.isSessionCreated()">
+    <div style="width: 30%; float:left">
+
+      <div *ngIf="sessionInfo.isSessionCreated()">
+
+        <div style="margin-left: 3%">
+          <h3 style="margin-bottom: 0"> Contacts:
+
+            <button mat-button *ngIf="!addingContact && hasSelectableContacts()"
+                    style="font-size:10px; margin-bottom: 0"
+                    (click)="addContact()">Add contact
+            </button>
+
+            <select (change)="saveContact($event.target)" *ngIf="addingContact">
+              <option *ngFor="let contact of selectableContacts()" [value]="contact">
+                {{ contact }}
+              </option>
+            </select>
+
+
+          </h3>
+          <span *ngFor="let contact of sessionInfo.getContacts()">
+              <button mat-button (click)="startChat(contact)">
+                  {{ contact }}
+              </button>
+                <br/>
+            </span>
+
+        </div>
+
+
+        <div style="margin-left: 3%">
+          <h3 style="margin-bottom: 0"> Chats:</h3>
+
+          <span *ngFor="let chat of sessionInfo.getChats()">
+
+              <button mat-button (click)="selectChat(chat.chatId)">
+                  Chat with {{ chat.userId }}
+                <span *ngIf="chat.pendingNotifications > 0" style="color:red">
+                  ({{ chat.pendingNotifications }}) </span>
+              </button>
+              <br/>
+            </span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div style="width: 70%; float:right">
+
+      <div *ngIf="openChat.isActive()">
+
+        <div id="chat-container">
+          <div class="{{messageStyle(message)}}"
+               *ngFor="let message of openChat.chatInfo.messages">
+            <span>
+               {{ message.content }}
+            </span>
+          </div>
+        </div>
+
+
+        <div class="chat-input-container">
+          <br/>
+          <textarea matInput [(ngModel)]="messageContent" placeholder="Message"
+                  style="width: 500px; height: 100px"
+                  (keyup.enter)="sendMessage()"></textarea>
+          <br/>
+          <button mat-button (click)="sendMessage()">Send</button>
+          <button mat-button (click)="closeChat()">Close</button>
+        </div>
+
+
+      </div>
+
+    </div>
+  </div>
+</div>
