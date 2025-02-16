@@ -1,0 +1,11 @@
+server:
+  port: 3030
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: temporal-samples
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs

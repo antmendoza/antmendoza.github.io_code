@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  temporal:
+    build: ./temporal-server
+    ports:
+      - "8233:8233"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7233" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  frontend_app:
+    build: ./frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend_app
+
+  backend_app:
+    build: ./backend
+    ports:
+      - "3030:3030"
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - USE_TEMPORAL_ADDRESS=true
