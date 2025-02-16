@@ -1,25 +1,21 @@
-# Backend for Chat Application using NestJS and Temporal
+# Backend for Chat Application using Temporal
 
 ## Description
 
-This project uses Temporal to store user configuration and chat messages.
+This application leverages Temporal to manage users and chat messages as long-running workflows
 
-It is implemented as two workflows:
+It uses Temporal workflows to store user configurations and chat messages.
+Workflows communicate with each other using Temporal's signals.
+
+The application it is implemented as two workflows:
+
 
 ### User Configuration workflow
-
-Every user is represented as a Temporal workflow, and we can communicate with it through signals and updates to:
-- add a new contact
-- start a chat with another contact
-- notify the user of new messages
-it stores a reference of the contacts and chate with other users.
+Every user is represented as a Temporal workflow and stores information such as contacts, chats, and notifications.
 
 
 ### Chat workflow
-The chat workflow is a long-running workflow that stores the chat messages between two or more users. It is initiated
-as a child workflow of the User Configuration workflow when the user start a chat with another user.
-
-It stores the chat messages and notifies the users of new messages.
+Another long-running workflow that stores chat messages between two or more users and notifies them of new messages.
 
 
 ## Install dependencies

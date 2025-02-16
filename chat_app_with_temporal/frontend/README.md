@@ -1,8 +1,6 @@
 # UI
 
-UI for the to-do list application built using Angular.
-
-> forked from https://github.com/saikorthivada/todolist
+UI for the chat application built using Angular.
 
 # Run the application
 
